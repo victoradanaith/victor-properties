@@ -9,8 +9,9 @@ Writes:
   index.html          the app page wrapped as a full HTML document
   data/snapshot.json  a read-only public copy of the listings
 
-Listings imported from the private Google Sheet (ids starting "sheet-")
-and contact details (names, phone numbers) are left out of the public copy.
+Listings imported from the private Google Sheet (ids starting "sheet-"),
+contact details (names, phone numbers) and the main property (its pin and
+details) are left out of the public copy.
 """
 import json
 import re
@@ -21,6 +22,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PHONE = re.compile(r"\b0\d{1,2}[- ]?\d{3}[- ]?\d{3,4}\b")
 SKIP_FIELDS = {"contact"}
+PUBLIC_SUBJECT = {"name": "BTS ราชเทวี", "address": "", "lat": 13.7521, "lng": 100.5316,
+                  "landSqw": None, "usableSqm": None, "floors": None, "units": None, "notes": ""}
 
 
 def load(path):
@@ -32,7 +35,9 @@ def clean(listing):
     out = {k: v for k, v in listing.items() if k not in SKIP_FIELDS}
     for key in ("notes", "location", "title"):
         if isinstance(out.get(key), str):
-            out[key] = PHONE.sub("[ตัดเบอร์โทร]", out[key])
+            text = PHONE.sub("[ตัดเบอร์โทร]", out[key])
+            # Drop phrases that hint where the main property is (e.g. "same soi as the main property").
+            out[key] = " ".join(w for w in text.split() if "ทรัพย์หลัก" not in w)
     return out
 
 
@@ -45,13 +50,15 @@ def main(export_dir):
             continue
         listings.append({"id": doc_id, **clean(data)})
 
-    settings = None
+    settings = {}
     settings_file = export / "settings" / "main.json"
     if settings_file.exists():
         settings, _ = load(settings_file)
+    # The public copy never carries the main property: distances use BTS Ratchathewi instead.
+    settings["subject"] = PUBLIC_SUBJECT
 
     (ROOT / "data").mkdir(exist_ok=True)
-    snapshot = {"exportedAt": date.today().isoformat(), "settings": settings, "listings": listings}
+    snapshot = {"exportedAt": date.today().isoformat(), "public": True, "settings": settings, "listings": listings}
     (ROOT / "data" / "snapshot.json").write_text(
         json.dumps(snapshot, ensure_ascii=False, indent=1), encoding="utf-8"
     )

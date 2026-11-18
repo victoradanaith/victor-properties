@@ -11,7 +11,7 @@
   --accent:#0f6b5c; --accent-soft:#d4ebe5;
   --gold:#b0811d; --gold-soft:#f5e8c8;
   --bts:#5aa832; --good:#1f7a3d; --good-soft:#dbefdf; --warn:#a2611a; --warn-soft:#f7e6d0; --bad:#b2392f; --bad-soft:#f6dcd8;
-  --road:#bfc8c3; --water:#a9c7d8; --map-filter:none;
+  --road:#bfc8c3; --water:#a9c7d8; --map-filter:none; --room:#3d5fa3; --room-soft:#dfe6f4;
   --f-display:"Anuphan","IBM Plex Sans Thai",system-ui,sans-serif;
   --f-body:"IBM Plex Sans Thai",system-ui,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
@@ -19,11 +19,11 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0f1714; --surface:#16211d; --sunk:#1d2a25; --line:#2c3b35; --ink:#e3ece8; --muted:#93a49c;
   --accent:#4fc0a8; --accent-soft:#16372f; --gold:#e0b04b; --gold-soft:#3a2f14; --bts:#7cc955;
-  --good:#5fc27a; --good-soft:#163222; --warn:#e29a4e; --warn-soft:#3a2814; --bad:#ef7a6e; --bad-soft:#3d1c19; --road:#34443e; --water:#28465a; --map-filter:brightness(.82) contrast(1.05) saturate(.85); color-scheme:dark}}
+  --good:#5fc27a; --good-soft:#163222; --warn:#e29a4e; --warn-soft:#3a2814; --bad:#ef7a6e; --bad-soft:#3d1c19; --road:#34443e; --water:#28465a; --map-filter:brightness(.82) contrast(1.05) saturate(.85); --room:#93b1ec; --room-soft:#1c2840; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1714; --surface:#16211d; --sunk:#1d2a25; --line:#2c3b35; --ink:#e3ece8; --muted:#93a49c;
   --accent:#4fc0a8; --accent-soft:#16372f; --gold:#e0b04b; --gold-soft:#3a2f14; --bts:#7cc955;
-  --good:#5fc27a; --good-soft:#163222; --warn:#e29a4e; --warn-soft:#3a2814; --bad:#ef7a6e; --bad-soft:#3d1c19; --road:#34443e; --water:#28465a; --map-filter:brightness(.82) contrast(1.05) saturate(.85); color-scheme:dark}
+  --good:#5fc27a; --good-soft:#163222; --warn:#e29a4e; --warn-soft:#3a2814; --bad:#ef7a6e; --bad-soft:#3d1c19; --road:#34443e; --water:#28465a; --map-filter:brightness(.82) contrast(1.05) saturate(.85); --room:#93b1ec; --room-soft:#1c2840; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
 .wrap{max-width:1240px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -53,7 +53,7 @@ nav.tabs button{background:none;border:1px solid transparent;border-radius:8px;p
 nav.tabs button[aria-selected="true"]{background:var(--surface);border-color:var(--line);color:var(--ink)}
 nav.tabs .count{font-family:var(--f-mono);font-size:.75rem;background:var(--sunk);border-radius:99px;padding:1px 7px;margin-left:6px}
 
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
 .stat .v{font-family:var(--f-mono);font-size:1.25rem;font-weight:500;margin-top:2px}
 .stat .s{font-size:.78rem;color:var(--muted)}
@@ -87,6 +87,7 @@ tr:last-child td{border-bottom:none}
 .chip.shop{background:var(--accent-soft);color:var(--accent)}
 .chip.rent{background:var(--gold-soft);color:var(--gold)}
 .chip.sold{background:var(--ink);color:var(--surface)}
+.chip.room{background:var(--room-soft);color:var(--room)}
 .chip.condo{background:var(--sunk);color:var(--muted);border:1px solid var(--line)}
 .chip.good{background:var(--good-soft);color:var(--good)}
 .chip.warn{background:var(--warn-soft);color:var(--warn)}
@@ -106,7 +107,7 @@ tr:last-child td{border-bottom:none}
 .settings{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .settings label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted)}
 .settings .hint{font-size:.74rem}
-.dealcard{display:grid;grid-template-columns:minmax(0,1fr) repeat(4,minmax(0,auto));gap:6px 22px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.dealcard{display:grid;grid-template-columns:minmax(0,1fr) repeat(5,minmax(0,auto));gap:6px 22px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
 .dealcard:last-child{border-bottom:none}
 .dealcard .k{font-size:.72rem;color:var(--muted)}
 .empty{padding:28px;text-align:center;color:var(--muted)}
@@ -116,6 +117,7 @@ tr:last-child td{border-bottom:none}
 .lmap{height:480px;border-radius:8px;overflow:hidden;background:var(--sunk);border:1px solid var(--line)}
 .lmap.small{height:280px}
 .lmap .leaflet-image-layer{filter:var(--map-filter)}
+.cu-tag{background:#c2185b;color:#fff;font-weight:700;font-size:11px;padding:2px 6px;border-radius:4px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .leaflet-container{font-family:var(--f-body)!important}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--surface);color:var(--ink)}
 .leaflet-popup-content{margin:10px 12px;font-size:.85rem;line-height:1.45}
@@ -155,18 +157,21 @@ const STATIONS=[
  {n:'MRT หัวลำโพง',lat:13.7377,lng:100.5170}
 ];
 const RATCHATHEWI=STATIONS[0];
+const CHULA={n:'จุฬาฯ',lat:13.7388,lng:100.5322};
+const REF=()=>S.publicView?'BTS ราชเทวี':'ทรัพย์หลัก';
 const TYPES={
  shop_sale:{label:'ตึกแถวขาย',chip:'shop'},
  shop_sold:{label:'ตึกแถวขายแล้ว (ราคาจริง)',chip:'sold'},
  shop_rent:{label:'ตึกแถวให้เช่า',chip:'rent'},
  condo_sale:{label:'คอนโดขาย',chip:'condo'},
- condo_rent:{label:'คอนโดเช่า',chip:'condo'}
+ condo_rent:{label:'คอนโดเช่า',chip:'condo'},
+ room_rent:{label:'ห้องเช่า/หอพักรายเดือน',chip:'room'}
 };
 const CONDITIONS={orig:'สภาพเดิม ใช้ได้',full:'ต้องรีโนเวททั้งหลัง',ready:'พร้อมใช้',reno:'รีโนแล้ว'};
 const STATUSES={active:'ยังขาย/ว่าง',talk:'กำลังคุย',done:'ปิดการขาย/เช่าแล้ว',gone:'หายไป/ถอนประกาศ'};
 const DEFAULT_SETTINGS={
- subject:{name:'ตึกแถวใกล้ปั๊ม LPG',address:'ตึกแถวใกล้ปั๊ม LPG',lat:13.752391,lng:100.525804,landSqw:null,usableSqm:null,floors:null,units:1,notes:''},
- a:{radiusKm:1.5,negotiation:0.08,dealThreshold:0.15,buyCost:0.03,renoPerSqm:15000,resalePerSqm:85000,rentPerSqm:420,occupancy:0.9,sellCost:0.05,condoSalePerSqm:150000,condoRentPerSqm:650,useCondoData:true}
+ subject:{name:'ตึกแถวใกล้ปั๊ม LPG',address:'ตึกแถวใกล้ปั๊ม LPG',lat:null,lng:null,landSqw:null,usableSqm:null,floors:null,units:1,notes:''},
+ a:{radiusKm:1.5,negotiation:0.08,dealThreshold:0.15,buyCost:0.03,renoPerSqm:15000,resalePerSqm:85000,rentPerSqm:420,occupancy:0.9,sellCost:0.05,condoSalePerSqm:150000,condoRentPerSqm:650,useCondoData:true,roomGrossSqm:25,roomFitout:80000,roomRent:7000,useRoomData:true,roomOcc:0.85,roomOpex:0.2}
 };
 
 // ---------- state ----------
@@ -196,7 +201,7 @@ function derive(l){
  d.ppw=(d.price&&d.landSqw)?d.price/d.landSqw:null;
  d.ppm=(d.price&&d.usableSqm)?d.price/d.usableSqm:null;
  d.rpm=(d.rent&&d.usableSqm)?d.rent/d.usableSqm:null;
- d.distBts=hav(l,RATCHATHEWI);d.distSubj=hav(l,subj);
+ d.distBts=hav(l,RATCHATHEWI);d.distSubj=hav(l,subj);d.distChula=hav(l,CHULA);
  return d;
 }
 function market(){
@@ -218,7 +223,10 @@ function market(){
  const condoR=L.filter(x=>x.type==='condo_rent'&&x.rpm&&!x.example);
  const condoSale=(a.useCondoData&&condoS.length>=3)?quant(condoS.map(x=>x.ppm),.5):a.condoSalePerSqm;
  const condoRent=(a.useCondoData&&condoR.length>=3)?quant(condoR.map(x=>x.rpm),.5):a.condoRentPerSqm;
- return {L,asks,sold,askMed,soldMed,mkt,lo,hi,basis,askPpm,rents,rentMed,condoSale,condoRent,condoSFromData:a.useCondoData&&condoS.length>=3,condoRFromData:a.useCondoData&&condoR.length>=3,condoS,condoR};
+ const roomsL=L.filter(x=>x.type==='room_rent'&&x.rent&&!x.example);
+ const roomMed=quant(roomsL.map(x=>x.rent),.5),roomRpm=quant(roomsL.map(x=>x.rpm),.5);
+ const roomRent=(a.useRoomData&&roomsL.length>=3)?roomMed:a.roomRent;
+ return {L,roomsL,roomMed,roomRpm,roomRent,roomFromData:a.useRoomData&&roomsL.length>=3,asks,sold,askMed,soldMed,mkt,lo,hi,basis,askPpm,rents,rentMed,condoSale,condoRent,condoSFromData:a.useCondoData&&condoS.length>=3,condoRFromData:a.useCondoData&&condoR.length>=3,condoS,condoR};
 }
 function dealCalc(x,M){
  const a=S.settings.a;if(!x.price)return null;
@@ -232,7 +240,11 @@ function dealCalc(x,M){
  const vsCondo=perSqm?perSqm/M.condoSale-1:null;
  const condoEq=u?u*M.condoSale:null; // what the same area costs as condo
  const disc=(M.mkt&&x.ppw)?(x.ppw*(1-a.negotiation))/M.mkt-1:null;
- return {reno,allIn,perSqm,exit,profit,margin:profit!=null?profit/allIn:null,yld,vsCondo,condoEq,disc};
+ const rooms=u?Math.floor(u/a.roomGrossSqm):null;
+ const stuCost=rooms?allIn+rooms*a.roomFitout:null;
+ const stuNet=rooms?rooms*M.roomRent*12*a.roomOcc*(1-a.roomOpex):null;
+ const stuYld=stuCost?stuNet/stuCost:null;
+ return {reno,allIn,perSqm,exit,profit,margin:profit!=null?profit/allIn:null,yld,vsCondo,condoEq,disc,rooms,stuCost,stuNet,stuYld};
 }
 
 // ---------- db ----------
@@ -247,7 +259,7 @@ async function boot(){
      const r=await fetch('data/snapshot.json',{cache:'no-store'});
      if(!r.ok)throw new Error(r.status);
      const snap=await r.json();
-     S.listings=snap.listings||[];
+     S.listings=snap.listings||[];S.publicView=!!snap.public;
      if(snap.settings)S.settings={subject:{...DEFAULT_SETTINGS.subject,...(snap.settings.subject||{})},a:{...DEFAULT_SETTINGS.a,...(snap.settings.a||{})}};
      setStatus(`ฉบับอ่านอย่างเดียว · ${S.listings.length} รายการ · ข้อมูล ณ ${snap.exportedAt||'-'}`);
    }catch(e){setStatus('ไม่มีฐานข้อมูลในมุมมองนี้ ลงชื่อเข้าใช้ claude.ai เพื่อดูและบันทึกข้อมูล',true);}
@@ -275,7 +287,7 @@ let toastT;function toast(m){setStatus(m);clearTimeout(toastT);toastT=setTimeout
 function render(){
  const M=market();
  renderHeader(M);
- const tabs=[['overview','ภาพรวม'],['ledger','รายการทั้งหมด',S.listings.length],['deals','หาดีล',M.L.filter(x=>x.type==='shop_sale'&&x.status!=='done'&&x.status!=='gone').length],['settings','ทรัพย์หลัก & สมมติฐาน']];
+ const tabs=[['overview','ภาพรวม'],['ledger','รายการทั้งหมด',S.listings.length],['deals','หาดีล',M.L.filter(x=>x.type==='shop_sale'&&x.status!=='done'&&x.status!=='gone').length],['settings',S.publicView?'สมมติฐาน':'ทรัพย์หลัก & สมมติฐาน']];
  $('#tabs').innerHTML=tabs.map(([k,l,c])=>`<button role="tab" aria-selected="${S.tab===k}" data-tab="${k}">${l}${c!=null?`<span class="count">${c}</span>`:''}</button>`).join('');
  const v=$('#view');
  if(S.tab==='overview'){v.innerHTML=viewOverview(M);mountMainMap(M);}
@@ -285,6 +297,7 @@ function render(){
 }
 function renderHeader(M){
  const s=S.settings.subject;$('#subjAddr').textContent=s.address;
+ if(S.publicView){$('#subjAddr').parentElement.hidden=true;$('#valuation').innerHTML=`<div class="eyebrow">ราคาตลาดตึกแถว รอบ BTS ราชเทวี</div><div class="big num">${M.mkt?mb(M.mkt):'—'}<span class="small muted"> /ตร.ว.</span></div><div class="small muted">${esc(M.basis||'')}</div>`;return;}
  let h='<div class="eyebrow">มูลค่าประมาณของทรัพย์หลัก</div>';
  if(!M.mkt)h+=`<div class="big">—</div><div class="small muted">ยังไม่มีตึกแถวเทียบในรัศมี ${S.settings.a.radiusKm} กม.</div>`;
  else if(!num(s.landSqw))h+=`<div class="big num">${mb(M.mkt)}<span class="small muted"> /ตร.ว.</span></div><div class="small muted">กรอกขนาดที่ดินในแท็บ "ทรัพย์หลัก" เพื่อคำนวณมูลค่ารวม</div>`;
@@ -302,16 +315,17 @@ function viewOverview(M){
   <div class="stat"><div class="eyebrow">ราคาขายจริง</div><div class="v">${mb(M.soldMed)}<span class="small muted"> /ตร.ว.</span></div><div class="s">${M.sold.length?M.sold.length+' รายการ':'ยังไม่มีข้อมูลขายจริง'}</div></div>
   <div class="stat"><div class="eyebrow">ค่าเช่าตึกแถว</div><div class="v">${M.rentMed?baht(M.rentMed):'—'}<span class="small muted"> ฿/ตร.ม./ด.</span></div><div class="s">${M.rents.length?M.rents.length+' รายการ':'ยังไม่มีข้อมูลค่าเช่า'}</div></div>
   <div class="stat"><div class="eyebrow">คอนโดราชเทวี</div><div class="v">${baht(M.condoSale)}<span class="small muted"> ฿/ตร.ม.</span></div><div class="s">${M.condoSFromData?'มัธยฐาน '+M.condoS.length+' รายการ':'ค่าตั้งต้น ปรับได้ในสมมติฐาน'}</div></div>
+  <div class="stat"><div class="eyebrow">ห้องเช่านิสิต</div><div class="v">${M.roomMed?baht(M.roomMed):'—'}<span class="small muted"> ฿/ห้อง/ด.</span></div><div class="s">${M.roomsL.length?'มัธยฐาน '+M.roomsL.length+' แห่ง'+(M.roomRpm?' · '+baht(M.roomRpm)+' ฿/ตร.ม.':''):'ยังไม่มีข้อมูลห้องเช่า'}</div></div>
  </div>
  <div class="grid2">
   <section class="panel"><div class="panel-head"><h2>แผนที่ทรัพย์</h2><span class="small muted">เส้นประ 500 ม. และ 1 กม. รอบ BTS ราชเทวี</span></div><div id="mainMapSlot"></div>
    <div class="map-tools">
     <button class="btn primary" data-act="pinNew" ${S.canWrite?'':'disabled'}>+ ปักหมุดทรัพย์ใหม่</button>
-    <span class="small muted" id="pinHint">${S.pickNew?'คลิกบนแผนที่ตรงตำแหน่งทรัพย์ <button class="btn ghost small" data-act="pinCancel">ยกเลิก</button>':'ลากหมุดสีทองเพื่อย้ายตำแหน่งทรัพย์หลัก คลิกจุดอื่นเพื่อดูรายละเอียด'}</span>
+    <span class="small muted" id="pinHint">${S.pickNew?'คลิกบนแผนที่ตรงตำแหน่งทรัพย์ <button class="btn ghost small" data-act="pinCancel">ยกเลิก</button>':(S.publicView?'คลิกจุดเพื่อดูรายละเอียด':'ลากหมุดสีทองเพื่อย้ายตำแหน่งทรัพย์หลัก คลิกจุดอื่นเพื่อดูรายละเอียด')}</span>
    </div>
-   <div class="legend"><span><i style="background:var(--gold)"></i>ทรัพย์หลัก</span><span><i style="background:var(--accent)"></i>ตึกแถวขาย</span><span><i style="background:var(--ink)"></i>ขายแล้ว</span><span><i style="background:var(--warn)"></i>ให้เช่า</span><span><i style="background:var(--muted)"></i>คอนโด</span></div></section>
+   <div class="legend">${S.publicView?'':'<span><i style="background:var(--gold)"></i>ทรัพย์หลัก</span>'}<span><i style="background:var(--accent)"></i>ตึกแถวขาย</span><span><i style="background:var(--ink)"></i>ขายแล้ว</span><span><i style="background:var(--warn)"></i>ให้เช่า</span><span><i style="background:var(--muted)"></i>คอนโด</span><span><i style="background:var(--room)"></i>ห้องเช่า/หอพัก</span><span><i style="background:#c2185b"></i>จุฬาฯ</span></div></section>
   <section class="panel"><div class="panel-head"><h2>ราคาต่อตารางวา เทียบระยะทาง</h2><span class="small muted">ตึกแถวขาย/ขายแล้ว</span></div>${chartSvg(M)}
-   <p class="small muted">แกนนอนคือระยะจากทรัพย์หลัก เส้นประคือมูลค่าตลาดที่ใช้ประเมิน (${esc(M.basis||'ยังไม่มีข้อมูล')})</p></section>
+   <p class="small muted">แกนนอนคือระยะจาก${REF()} เส้นประคือมูลค่าตลาดที่ใช้ประเมิน (${esc(M.basis||'ยังไม่มีข้อมูล')})</p></section>
  </div>`;
 }
 
@@ -328,7 +342,7 @@ function baseMap(el){
  return m;
 }
 function subjIcon(){return L.divIcon({className:'',html:'<div class="subj-pin"></div>',iconSize:[22,22],iconAnchor:[11,27],tooltipAnchor:[0,-26]});}
-function typeColor(t){return t==='shop_sale'?tok('--accent'):t==='shop_sold'?tok('--ink'):t==='shop_rent'?tok('--warn'):tok('--muted');}
+function typeColor(t){return t==='shop_sale'?tok('--accent'):t==='shop_sold'?tok('--ink'):t==='shop_rent'?tok('--warn'):t==='room_rent'?tok('--room'):tok('--muted');}
 let MM=null;
 function mountMainMap(M){
  const slot=$('#mainMapSlot');if(!slot)return;
@@ -337,6 +351,7 @@ function mountMainMap(M){
   const el=document.createElement('div');el.className='lmap';slot.appendChild(el);
   const map=baseMap(el);map.setView([13.7495,100.5275],16);
   [500,1000].forEach(r=>L.circle([RATCHATHEWI.lat,RATCHATHEWI.lng],{radius:r,color:tok('--bts'),weight:2,dashArray:'6 6',fill:false,interactive:false}).addTo(map));
+  L.marker([CHULA.lat,CHULA.lng],{icon:L.divIcon({className:'',html:'<div class="cu-tag">จุฬาฯ</div>',iconSize:[44,20],iconAnchor:[22,10]}),interactive:false}).addTo(map);
   const layer=L.layerGroup().addTo(map);
   map.on('click',e=>{if(!S.pickNew)return;S.pickNew=false;render();openDrawer(null,{lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6)});});
   map.on('popupopen',e=>{const b=e.popup.getElement()?.querySelector('[data-open]');if(b)b.onclick=()=>{map.closePopup();openDrawer(b.dataset.open);};});
@@ -350,11 +365,11 @@ function mountMainMap(M){
   const val=x.type.endsWith('rent')?(x.rent?baht(x.rent)+' ฿/เดือน':''):(x.price?mb(x.price):'ไม่ทราบราคา')+(x.ppw?` · ${mb(x.ppw)}/ตร.ว.`:'');
   L.circleMarker([x.lat,x.lng],{radius:8,color:'#fff',weight:2,fillColor:typeColor(x.type),fillOpacity:x.example?.5:1})
    .bindTooltip(esc(x.title))
-   .bindPopup(`<b>${esc(x.title)}</b><br><span class="muted">${t.label}</span><br>${val}<br>ห่างทรัพย์หลัก ${km(x.distSubj)} · BTS ${km(x.distBts)}<br><button class="btn" style="margin-top:6px" data-open="${esc(x.id)}">ดู/แก้ไข</button>`)
+   .bindPopup(`<b>${esc(x.title)}</b><br><span class="muted">${t.label}</span><br>${val}<br>ห่าง${REF()} ${km(x.distSubj)} · BTS ${km(x.distBts)} · จุฬาฯ ${km(x.distChula)}<br><button class="btn" style="margin-top:6px" data-open="${esc(x.id)}">ดู/แก้ไข</button>`)
    .addTo(MM.layer);
  });
  const s=S.settings.subject;
- if(s.lat!=null&&s.lng!=null){
+ if(!S.publicView&&s.lat!=null&&s.lng!=null){
   const mk=L.marker([s.lat,s.lng],{icon:subjIcon(),draggable:S.canWrite&&!!S.db,zIndexOffset:1000}).bindTooltip('ทรัพย์หลัก: '+esc(s.name),{permanent:true,direction:'top'}).addTo(MM.layer);
   mk.on('dragend',()=>{const p=mk.getLatLng();S.settings.subject.lat=+p.lat.toFixed(6);S.settings.subject.lng=+p.lng.toFixed(6);saveSettings();render();});
  }
@@ -389,7 +404,7 @@ function chartSvg(M){
  let g=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="กราฟราคาต่อตารางวา">`;
  for(let v=0;v<=ymax+1e-9;v+=step){g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" class="num">${v.toFixed(2)}</text>`;}
  for(let v=0;v<=xmax+1e-9;v+=0.5){g+=`<text x="${X(v)}" y="${H-B+18}" text-anchor="middle" font-size="11" fill="var(--muted)">${v.toFixed(1)}</text>`;}
- g+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle" font-size="11" fill="var(--muted)">ระยะจากทรัพย์หลัก (กม.)</text><text x="12" y="${T+4}" font-size="11" fill="var(--muted)">ล้าน/ตร.ว.</text>`;
+ g+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle" font-size="11" fill="var(--muted)">ระยะจาก${REF()} (กม.)</text><text x="12" y="${T+4}" font-size="11" fill="var(--muted)">ล้าน/ตร.ว.</text>`;
  if(M.mkt){g+=`<line x1="${L}" x2="${W-R}" y1="${Y(M.mkt/1e6)}" y2="${Y(M.mkt/1e6)}" stroke="var(--gold)" stroke-width="2" stroke-dasharray="6 4"/><text x="${W-R}" y="${Y(M.mkt/1e6)-6}" text-anchor="end" font-size="11" font-weight="600" fill="var(--gold)">ตลาด ${mb(M.mkt)}</text>`;}
  g+=`<line x1="${X(S.settings.a.radiusKm)}" x2="${X(S.settings.a.radiusKm)}" y1="${T}" y2="${H-B}" stroke="var(--muted)" stroke-dasharray="2 4" opacity="${S.settings.a.radiusKm<=xmax?1:0}"/>`;
  pts.forEach(p=>{g+=`<g data-open="${esc(p.id)}" style="cursor:pointer"><circle cx="${X(p.distSubj)}" cy="${Y(p.ppw/1e6)}" r="6" fill="${p.type==='shop_sold'?'var(--ink)':'var(--accent)'}" stroke="var(--surface)" stroke-width="1.5" ${p.example?'opacity=".45"':''}/><title>${esc(p.title)} · ${mb(p.ppw)}/ตร.ว. · ${km(p.distSubj)}</title></g>`;});
@@ -399,27 +414,27 @@ function chartSvg(M){
 function viewLedger(M){
  const q=S.q.trim().toLowerCase();
  let rows=M.L.filter(x=>(S.ftype==='all'||x.type===S.ftype)&&(S.fexample==='all'||(S.fexample==='real'?!x.example:x.example))&&(!q||[x.title,x.location,x.notes,x.contact].join(' ').toLowerCase().includes(q)));
- const key={dist:x=>x.distSubj??99,ppw:x=>x.ppw??1e12,price:x=>x.price??1e12,date:x=>-(Date.parse(x.date)||0)}[S.sort];
+ const key={dist:x=>x.distSubj??99,chula:x=>x.distChula??99,ppw:x=>x.ppw??1e12,price:x=>x.price??1e12,date:x=>-(Date.parse(x.date)||0)}[S.sort];
  rows.sort((a,b)=>key(a)-key(b));
  const nEx=S.listings.filter(x=>x.example).length;
  return `<div class="toolbar">
   <input type="search" id="q" placeholder="ค้นหา ชื่อ ทำเล ซอย หมายเหตุ" value="${esc(S.q)}">
   <select id="ftype"><option value="all">ทุกประเภท</option>${Object.entries(TYPES).map(([k,t])=>`<option value="${k}" ${S.ftype===k?'selected':''}>${t.label}</option>`).join('')}</select>
-  <select id="sort">${[['dist','ใกล้ทรัพย์หลัก'],['ppw','ราคา/ตร.ว. ต่ำสุด'],['price','ราคารวมต่ำสุด'],['date','ล่าสุด']].map(([k,l])=>`<option value="${k}" ${S.sort===k?'selected':''}>เรียง: ${l}</option>`).join('')}</select>
+  <select id="sort">${[['dist','ใกล้'+REF()],['chula','ใกล้จุฬาฯ'],['ppw','ราคา/ตร.ว. ต่ำสุด'],['price','ราคารวมต่ำสุด'],['date','ล่าสุด']].map(([k,l])=>`<option value="${k}" ${S.sort===k?'selected':''}>เรียง: ${l}</option>`).join('')}</select>
   <button class="btn primary" data-act="new" ${S.canWrite?'':'disabled'}>+ เพิ่มรายการ</button>
   ${nEx?`<button class="btn danger" data-act="clearEx" ${S.canWrite?'':'disabled'}>ลบตัวอย่าง ${nEx} รายการ</button>`:''}
  </div>
  <div class="tablewrap"><table>
-  <thead><tr><th>ทรัพย์</th><th>ประเภท</th><th class="r">ที่ดิน ตร.ว.</th><th class="r">ใช้สอย ตร.ม.</th><th class="r">ราคา / ค่าเช่า</th><th class="r">ต่อ ตร.ว.</th><th class="r">ต่อ ตร.ม.</th><th class="r">ห่างทรัพย์หลัก</th><th class="r">ห่าง BTS</th><th>ข้อมูล</th></tr></thead>
+  <thead><tr><th>ทรัพย์</th><th>ประเภท</th><th class="r">ที่ดิน ตร.ว.</th><th class="r">ใช้สอย ตร.ม.</th><th class="r">ราคา / ค่าเช่า</th><th class="r">ต่อ ตร.ว.</th><th class="r">ต่อ ตร.ม.</th><th class="r">ห่าง${REF()}</th><th class="r">ห่าง BTS</th><th class="r">ห่างจุฬาฯ</th><th>ข้อมูล</th></tr></thead>
   <tbody>${rows.length?rows.map(x=>{const t=TYPES[x.type]||{label:x.type,chip:'condo'};const isRent=x.type.endsWith('rent');return `<tr data-open="${esc(x.id)}">
-   <td><div class="t-title">${esc(x.title)}</div><div class="small muted">${esc(x.location||'')}${x.floors?` · ${esc(x.floors)} ชั้น`:''}${x.units&&x.units>1?` · ${esc(x.units)} คูหา`:''}</div></td>
+   <td><div class="t-title">${esc(x.title)}</div><div class="small muted">${esc(x.location||'')}${x.floors?` · ${esc(x.floors)} ชั้น`:''}${x.units&&x.units>1?` · ${esc(x.units)} ${x.type==='room_rent'?'ห้อง':'คูหา'}`:''}</div></td>
    <td><span class="chip ${t.chip}">${t.label}</span>${x.example?' <span class="chip ex">ตัวอย่าง</span>':''}${x.status&&x.status!=='active'?`<div class="small muted">${STATUSES[x.status]||''}</div>`:''}</td>
    <td class="r num">${x.landSqw??'—'}</td><td class="r num">${x.usableSqm??'—'}</td>
    <td class="r num">${isRent?(x.rent?baht(x.rent)+' ฿/ด.':'—'):mb(x.price)}</td>
    <td class="r num">${x.ppw?mb(x.ppw):'—'}</td>
    <td class="r num">${isRent?(x.rpm?baht(x.rpm)+'/ด.':'—'):(x.ppm?baht(x.ppm):'—')}</td>
-   <td class="r num">${km(x.distSubj)}</td><td class="r num">${km(x.distBts)}</td>
-   <td class="small">${x.verified?'<span class="chip good">ยืนยันแล้ว</span>':'<span class="chip warn">ยังไม่ยืนยัน</span>'}${x.date?`<div class="muted">${esc(x.date)}</div>`:''}</td></tr>`}).join(''):`<tr><td colspan="10" class="empty">${S.loaded?'ยังไม่มีรายการตามตัวกรองนี้ กด "+ เพิ่มรายการ" เพื่อบันทึกทรัพย์แรก':'กำลังโหลดรายการ…'}</td></tr>`}</tbody>
+   <td class="r num">${km(x.distSubj)}</td><td class="r num">${km(x.distBts)}</td><td class="r num">${km(x.distChula)}</td>
+   <td class="small">${x.verified?'<span class="chip good">ยืนยันแล้ว</span>':'<span class="chip warn">ยังไม่ยืนยัน</span>'}${x.date?`<div class="muted">${esc(x.date)}</div>`:''}</td></tr>`}).join(''):`<tr><td colspan="11" class="empty">${S.loaded?'ยังไม่มีรายการตามตัวกรองนี้ กด "+ เพิ่มรายการ" เพื่อบันทึกทรัพย์แรก':'กำลังโหลดรายการ…'}</td></tr>`}</tbody>
  </table></div>
  <p class="small muted">คลิกแถวเพื่อแก้ไข ราคาประกาศไม่ใช่ราคาซื้อขายจริง ใส่ราคาที่ปิดการขายจริงเป็นประเภท "ตึกแถวขายแล้ว" เพื่อให้การประเมินแม่นขึ้น</p>`;
 }
@@ -432,6 +447,8 @@ function viewDeals(M){
   <h2>ตึกแถวรีโนเวท เทียบคอนโด</h2>
   <p>งบคอนโด 60 ตร.ม. แถวราชเทวี ประมาณ <b class="num">${mb(condoEx,1)}</b> (${baht(M.condoSale)} ฿/ตร.ม.) แต่ละตึกด้านล่างแสดงต้นทุนรวมหลังซื้อและรีโนเวท และเทียบราคาต่อตารางเมตรใช้สอยกับคอนโด เกณฑ์ "ต่ำกว่าตลาด" คือราคาหลังต่อรองต่ำกว่าราคาตลาดต่อ ตร.ว. ตั้งแต่ ${Math.round(a.dealThreshold*100)}% ขึ้นไป</p>
   <p class="small muted">สมมติฐาน: ค่าใช้จ่ายซื้อ ${Math.round(a.buyCost*100)}% · รีโนเวท ${baht(a.renoPerSqm)} ฿/ตร.ม. (ตึกพร้อมใช้คิด 35%) · ราคาขายหลังรีโน ${baht(a.resalePerSqm)} ฿/ตร.ม. หักค่าขาย ${Math.round(a.sellCost*100)}% · ค่าเช่าทั้งตึก ${baht(a.rentPerSqm)} ฿/ตร.ม./ด. เต็ม ${Math.round(a.occupancy*100)}% ปรับได้ในแท็บสมมติฐาน</p>
+  <h3 style="margin-top:12px">แบ่งห้องให้นิสิตจุฬาฯ เช่า</h3>
+  <p class="small">คิดห้องละ ${a.roomGrossSqm} ตร.ม. (รวมทางเดิน/ห้องน้ำ) ค่าทำห้อง ${baht(a.roomFitout)} ฿/ห้อง ค่าเช่า <b class="num">${baht(M.roomRent)}</b> ฿/ห้อง/ด. ${M.roomFromData?'(มัธยฐานห้องเช่าที่บันทึก '+M.roomsL.length+' แห่ง)':'(ค่าตั้งต้น)'} เต็ม ${Math.round(a.roomOcc*100)}% หักค่าดำเนินการ ${Math.round(a.roomOpex*100)}% ผลตอบแทนสุทธิคิดจากต้นทุนรวมค่าทำห้อง</p>
  </div>
  <div class="panel" style="padding:0">${rows.length?rows.map(({x,d})=>{
    const flag=d.disc==null?'<span class="chip condo">ไม่มีขนาดที่ดิน</span>':d.disc<=-a.dealThreshold?`<span class="chip good">ต่ำกว่าตลาด ${pct(d.disc)}</span>`:d.disc<0?`<span class="chip warn">ต่ำกว่าเล็กน้อย ${pct(d.disc)}</span>`:`<span class="chip bad">สูงกว่าตลาด ${pct(d.disc)}</span>`;
@@ -441,8 +458,9 @@ function viewDeals(M){
     <div><div class="k">ต้นทุน/ตร.ม. เทียบคอนโด</div><div class="num">${d.perSqm?baht(d.perSqm):'—'}</div><div class="small ${d.vsCondo!=null&&d.vsCondo<0?'':'muted'}" style="color:${d.vsCondo!=null&&d.vsCondo<0?'var(--good)':''}">${d.vsCondo!=null?pct(d.vsCondo)+' vs คอนโด':''}</div></div>
     <div><div class="k">กำไรถ้าขายต่อ</div><div class="num" style="color:${d.profit>0?'var(--good)':d.profit<0?'var(--bad)':''}">${d.profit!=null?mb(d.profit):'—'}</div><div class="small muted">${d.margin!=null?pct(d.margin)+' ของทุน':''}</div></div>
     <div><div class="k">ผลตอบแทนเช่า</div><div class="num">${d.yld!=null?(d.yld*100).toFixed(1)+'%':'—'}</div><div class="small muted">ต่อปี ก่อนภาษี</div></div>
+    <div><div class="k">แบ่งห้องนิสิต</div><div class="num" style="color:var(--room)">${d.stuYld!=null?(d.stuYld*100).toFixed(1)+'%':'—'}</div><div class="small muted">${d.rooms!=null?d.rooms+' ห้อง · จุฬาฯ '+km(x.distChula):'จุฬาฯ '+km(x.distChula)}</div></div>
    </div>`}).join(''):`<div class="empty">ยังไม่มีตึกแถวที่กำลังขาย เพิ่มประกาศในแท็บรายการทั้งหมด</div>`}</div>
- <p class="small muted prose" style="max-width:none">ตึกแถวขายแบ่งห้องเป็นห้องชุดแบบคอนโดไม่ได้ถ้าไม่จดทะเบียนอาคารชุด ทางออกที่ใช้กันคือขายทั้งหลังให้คนที่อยากได้บ้านพร้อมออฟฟิศ หรือแบ่งห้องให้เช่ารายเดือน ตัวเลขในหน้านี้เป็นการคัดกรองเบื้องต้น ควรตรวจโฉนด ผังเมือง และสภาพโครงสร้างก่อนตัดสินใจ</p>`;
+ <p class="small muted prose" style="max-width:none">ตึกแถวขายแบ่งห้องเป็นห้องชุดแบบคอนโดไม่ได้ถ้าไม่จดทะเบียนอาคารชุด ทางออกที่ใช้กันคือขายทั้งหลังให้คนที่อยากได้บ้านพร้อมออฟฟิศ หรือแบ่งห้องให้เช่ารายเดือน ถ้าให้นิสิตนักศึกษาเช่าเป็นหอพัก ต้องขอใบอนุญาตตาม พ.ร.บ.หอพัก และตรวจเรื่องการเปลี่ยนการใช้อาคาร (ทางหนีไฟ ห้องน้ำ) ก่อน ตัวเลขในหน้านี้เป็นการคัดกรองเบื้องต้น ควรตรวจโฉนด ผังเมือง และสภาพโครงสร้างก่อนตัดสินใจ</p>`;
 }
 
 function viewSettings(M){
@@ -450,7 +468,7 @@ function viewSettings(M){
  const f=(k,l,v,hint,step='any')=>`<label>${l}<input type="number" step="${step}" data-a="${k}" value="${v??''}" ${dis}>${hint?`<span class="hint">${hint}</span>`:''}</label>`;
  const w=num(s.landSqw);
  return `<div class="grid2">
- <section class="panel"><div class="panel-head"><h2>ทรัพย์หลัก</h2></div>
+ ${S.publicView?'<section class="panel"><div class="panel-head"><h2>ฉบับอ่านอย่างเดียว</h2></div><p class="small muted">ฉบับนี้ไม่แสดงข้อมูลทรัพย์หลัก ระยะทางทั้งหมดวัดจาก BTS ราชเทวี</p></section>':`<section class="panel"><div class="panel-head"><h2>ทรัพย์หลัก</h2></div>
   <div class="form">
    <label class="full">ชื่อ<input data-s="name" value="${esc(s.name)}" ${dis}></label>
    <label class="full">ที่อยู่<input data-s="address" value="${esc(s.address)}" ${dis}></label>
@@ -470,10 +488,10 @@ function viewSettings(M){
    ${M.rentMed&&num(s.usableSqm)?` · ค่าเช่าตลาด ~<b class="num">${baht(M.rentMed*s.usableSqm)}</b> ฿/ด.`:''}
   </div>
   <p class="small muted">หมุดวางตามตำแหน่งที่คุณระบุบนแผนที่ ปรับละเอียดได้โดยลากหมุดสีทองบนแผนที่ในแท็บภาพรวม หรือวางลิงก์ Google Maps ของตึกจริงด้านบน ตึกที่ติดปั๊มแก๊ส LPG อาจถูกผู้ซื้อบางกลุ่มกดราคาเรื่องความปลอดภัย ควรเก็บราคาตึกที่ติดปั๊มเทียบไว้ด้วย</p>
- </section>
+ </section>`}
  <section class="panel"><div class="panel-head"><h2>สมมติฐานการคำนวณ</h2></div>
   <div class="settings">
-   ${f('radiusKm','รัศมีตึกเทียบ (กม.)',a.radiusKm,'วัดจากทรัพย์หลัก')}
+   ${f('radiusKm','รัศมีตึกเทียบ (กม.)',a.radiusKm,'วัดจาก'+REF())}
    ${f('negotiation','ส่วนลดจากการต่อรอง',a.negotiation,'0.08 = ราคาประกาศลด 8%')}
    ${f('dealThreshold','เกณฑ์ "ต่ำกว่าตลาด"',a.dealThreshold,'0.15 = ต่ำกว่าตลาด 15%')}
    ${f('buyCost','ค่าใช้จ่ายตอนซื้อ',a.buyCost,'ค่าโอน อากร ส่วนของผู้ซื้อ')}
@@ -485,6 +503,12 @@ function viewSettings(M){
    ${f('condoSalePerSqm','ราคาคอนโดอ้างอิง (฿/ตร.ม.)',a.condoSalePerSqm,'ใช้เมื่อมีข้อมูลคอนโดไม่ถึง 3 รายการ')}
    ${f('condoRentPerSqm','ค่าเช่าคอนโดอ้างอิง (฿/ตร.ม./ด.)',a.condoRentPerSqm)}
    <label>ใช้ข้อมูลคอนโดที่บันทึกไว้<select data-a="useCondoData" ${dis}><option value="true" ${a.useCondoData?'selected':''}>ใช่ เมื่อมีตั้งแต่ 3 รายการ</option><option value="false" ${a.useCondoData?'':'selected'}>ไม่ ใช้ค่าอ้างอิงเสมอ</option></select></label>
+   ${f('roomGrossSqm','พื้นที่ต่อห้องนิสิต (ตร.ม.)',a.roomGrossSqm,'รวมทางเดินและห้องน้ำ')}
+   ${f('roomFitout','ค่าทำห้องนิสิต (฿/ห้อง)',a.roomFitout,'ห้องน้ำ แอร์ เฟอร์นิเจอร์')}
+   ${f('roomRent','ค่าเช่าห้องนิสิตอ้างอิง (฿/ด.)',a.roomRent,'ใช้เมื่อมีข้อมูลห้องเช่าไม่ถึง 3 แห่ง')}
+   ${f('roomOcc','อัตราเข้าพักห้องนิสิต',a.roomOcc,'ช่วงปิดเทอมห้องว่างบางส่วน')}
+   ${f('roomOpex','ค่าดำเนินการห้องนิสิต',a.roomOpex,'แม่บ้าน ส่วนกลาง ซ่อมบำรุง')}
+   <label>ใช้ข้อมูลห้องเช่าที่บันทึกไว้<select data-a="useRoomData" ${dis}><option value="true" ${a.useRoomData?'selected':''}>ใช่ เมื่อมีตั้งแต่ 3 แห่ง</option><option value="false" ${a.useRoomData?'':'selected'}>ไม่ ใช้ค่าอ้างอิงเสมอ</option></select></label>
   </div>
   <p class="small muted">ค่าตั้งต้นเป็นตัวเลขกลางๆ สำหรับเริ่มต้น ควรปรับตามใบเสนอราคาผู้รับเหมาและข้อมูลที่เก็บได้จริง</p>
  </section></div>`;
@@ -572,7 +596,7 @@ document.addEventListener('change',e=>{
  if(t.id==='sort'){S.sort=t.value;savePrefs();render();return;}
  if(t.id==='subjMaps'){const p=parseMaps(t.value);if(p){S.settings.subject.lat=p.lat;S.settings.subject.lng=p.lng;saveSettings();render();}else toast('อ่านพิกัดจากลิงก์นี้ไม่ได้ ลองเปิดหมุดใน Google Maps แล้วคัดลอกลิงก์ที่มี @lat,lng');return;}
  if(t.dataset.s){const k=t.dataset.s;S.settings.subject[k]=t.type==='number'?num(t.value):t.value;saveSettings();render();return;}
- if(t.dataset.a){const k=t.dataset.a;S.settings.a[k]=k==='useCondoData'?t.value==='true':num(t.value)??DEFAULT_SETTINGS.a[k];saveSettings();render();return;}
+ if(t.dataset.a){const k=t.dataset.a;S.settings.a[k]=(k==='useCondoData'||k==='useRoomData')?t.value==='true':num(t.value)??DEFAULT_SETTINGS.a[k];saveSettings();render();return;}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();if(S.pickNew){S.pickNew=false;render();}}});
 window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(['overview','ledger','deals','settings'].includes(h)){S.tab=h;render();}});
