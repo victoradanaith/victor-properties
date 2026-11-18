@@ -170,7 +170,7 @@ const CONDITIONS={orig:'สภาพเดิม ใช้ได้',full:'ต�
 const STATUSES={active:'ยังขาย/ว่าง',talk:'กำลังคุย',done:'ปิดการขาย/เช่าแล้ว',gone:'หายไป/ถอนประกาศ'};
 const DEFAULT_SETTINGS={
  subject:{name:'ตึกแถวใกล้ปั๊ม LPG',address:'ตึกแถวใกล้ปั๊ม LPG',lat:null,lng:null,landSqw:null,usableSqm:null,floors:null,units:1,notes:''},
- a:{radiusKm:1.5,negotiation:0.08,dealThreshold:0.15,buyCost:0.03,renoPerSqm:15000,resalePerSqm:85000,rentPerSqm:420,occupancy:0.9,sellCost:0.05,condoSalePerSqm:150000,condoRentPerSqm:650,useCondoData:true,roomGrossSqm:25,roomFitout:80000,roomRent:7000,useRoomData:true,roomOcc:0.85,roomOpex:0.2}
+ a:{radiusKm:1.5,negotiation:0.08,dealThreshold:0.15,buyCost:0.03,renoPerSqm:15000,resalePerSqm:85000,rentPerSqm:420,occupancy:0.9,sellCost:0.05,condoSalePerSqm:150000,condoRentPerSqm:650,useCondoData:true,chulaRadiusKm:1.5,suiteSqm:40,suiteFitout:250000,suiteRentFactor:0.75,suiteRent:25000,suiteOcc:0.9,suiteOpex:0.15}
 };
 
 // ---------- state ----------
@@ -222,10 +222,11 @@ function market(){
  const condoR=L.filter(x=>x.type==='condo_rent'&&x.rpm&&!x.example);
  const condoSale=(a.useCondoData&&condoS.length>=3)?quant(condoS.map(x=>x.ppm),.5):a.condoSalePerSqm;
  const condoRent=(a.useCondoData&&condoR.length>=3)?quant(condoR.map(x=>x.rpm),.5):a.condoRentPerSqm;
- const roomsL=L.filter(x=>x.type==='room_rent'&&x.rent&&!x.example);
- const roomMed=quant(roomsL.map(x=>x.rent),.5),roomRpm=quant(roomsL.map(x=>x.rpm),.5);
- const roomRent=(a.useRoomData&&roomsL.length>=3)?roomMed:a.roomRent;
- return {L,roomsL,roomMed,roomRpm,roomRent,roomFromData:a.useRoomData&&roomsL.length>=3,asks,sold,askMed,soldMed,mkt,lo,hi,basis,askPpm,rents,rentMed,condoSale,condoRent,condoSFromData:a.useCondoData&&condoS.length>=3,condoRFromData:a.useCondoData&&condoR.length>=3,condoS,condoR};
+ const nearCU=x=>x.distChula!=null&&x.distChula<=a.chulaRadiusKm&&!x.example;
+ const cuS=L.filter(x=>x.type==='condo_sale'&&x.price&&nearCU(x)),cuR=L.filter(x=>x.type==='condo_rent'&&x.rent&&nearCU(x));
+ const cu={sale:cuS,rent:cuR,salePpm:quant(cuS.map(x=>x.ppm),.5),saleUnit:quant(cuS.map(x=>x.price),.5),unitSqm:quant(cuS.map(x=>x.usableSqm),.5),rentUnit:quant(cuR.map(x=>x.rent),.5),rentPpm:quant(cuR.map(x=>x.rpm),.5)};
+ cu.suiteRent=cu.rent.length>=3?cu.rentUnit*a.suiteRentFactor:a.suiteRent;cu.rentFromData=cu.rent.length>=3;
+ return {L,cu,asks,sold,askMed,soldMed,mkt,lo,hi,basis,askPpm,rents,rentMed,condoSale,condoRent,condoSFromData:a.useCondoData&&condoS.length>=3,condoRFromData:a.useCondoData&&condoR.length>=3,condoS,condoR};
 }
 function dealCalc(x,M){
  const a=S.settings.a;if(!x.price)return null;
@@ -239,11 +240,12 @@ function dealCalc(x,M){
  const vsCondo=perSqm?perSqm/M.condoSale-1:null;
  const condoEq=u?u*M.condoSale:null; // what the same area costs as condo
  const disc=(M.mkt&&x.ppw)?(x.ppw*(1-a.negotiation))/M.mkt-1:null;
- const rooms=u?Math.floor(u/a.roomGrossSqm):null;
- const stuCost=rooms?allIn+rooms*a.roomFitout:null;
- const stuNet=rooms?rooms*M.roomRent*12*a.roomOcc*(1-a.roomOpex):null;
- const stuYld=stuCost?stuNet/stuCost:null;
- return {reno,allIn,perSqm,exit,profit,margin:profit!=null?profit/allIn:null,yld,vsCondo,condoEq,disc,rooms,stuCost,stuNet,stuYld};
+ const suites=u?Math.floor(u/a.suiteSqm):null;
+ const cuCost=suites?allIn+suites*a.suiteFitout:null;
+ const perSuite=suites?cuCost/suites:null;
+ const vsCuUnit=(perSuite&&M.cu.saleUnit)?perSuite/M.cu.saleUnit-1:null;
+ const cuYld=suites?suites*M.cu.suiteRent*12*a.suiteOcc*(1-a.suiteOpex)/cuCost:null;
+ return {reno,allIn,perSqm,exit,profit,margin:profit!=null?profit/allIn:null,yld,vsCondo,condoEq,disc,suites,cuCost,perSuite,vsCuUnit,cuYld};
 }
 
 // ---------- db ----------
@@ -314,7 +316,7 @@ function viewOverview(M){
   <div class="stat"><div class="eyebrow">ราคาขายจริง</div><div class="v">${mb(M.soldMed)}<span class="small muted"> /ตร.ว.</span></div><div class="s">${M.sold.length?M.sold.length+' รายการ':'ยังไม่มีข้อมูลขายจริง'}</div></div>
   <div class="stat"><div class="eyebrow">ค่าเช่าตึกแถว</div><div class="v">${M.rentMed?baht(M.rentMed):'—'}<span class="small muted"> ฿/ตร.ม./ด.</span></div><div class="s">${M.rents.length?M.rents.length+' รายการ':'ยังไม่มีข้อมูลค่าเช่า'}</div></div>
   <div class="stat"><div class="eyebrow">คอนโดราชเทวี</div><div class="v">${baht(M.condoSale)}<span class="small muted"> ฿/ตร.ม.</span></div><div class="s">${M.condoSFromData?'มัธยฐาน '+M.condoS.length+' รายการ':'ค่าตั้งต้น ปรับได้ในสมมติฐาน'}</div></div>
-  <div class="stat"><div class="eyebrow">ห้องเช่านิสิต</div><div class="v">${M.roomMed?baht(M.roomMed):'—'}<span class="small muted"> ฿/ห้อง/ด.</span></div><div class="s">${M.roomsL.length?'มัธยฐาน '+M.roomsL.length+' แห่ง'+(M.roomRpm?' · '+baht(M.roomRpm)+' ฿/ตร.ม.':''):'ยังไม่มีข้อมูลห้องเช่า'}</div></div>
+  <div class="stat"><div class="eyebrow">คอนโดใกล้จุฬาฯ</div><div class="v">${M.cu.salePpm?baht(M.cu.salePpm):'—'}<span class="small muted"> ฿/ตร.ม.</span></div><div class="s">${M.cu.sale.length?'ขาย '+M.cu.sale.length+' ห้อง มัธยฐาน '+mb(M.cu.saleUnit,1)+'/ห้อง':'ยังไม่มีข้อมูล'}${M.cu.rent.length?' · เช่า '+baht(M.cu.rentUnit)+' ฿/ด.':''}</div></div>
  </div>
  <div class="grid2">
   <section class="panel"><div class="panel-head"><h2>แผนที่ทรัพย์</h2><span class="small muted">เส้นประ 500 ม. และ 1 กม. รอบ BTS ราชเทวี</span></div><div id="mainMapSlot"></div>
@@ -446,8 +448,8 @@ function viewDeals(M){
   <h2>ตึกแถวรีโนเวท เทียบคอนโด</h2>
   <p>งบคอนโด 60 ตร.ม. แถวราชเทวี ประมาณ <b class="num">${mb(condoEx,1)}</b> (${baht(M.condoSale)} ฿/ตร.ม.) แต่ละตึกด้านล่างแสดงต้นทุนรวมหลังซื้อและรีโนเวท และเทียบราคาต่อตารางเมตรใช้สอยกับคอนโด เกณฑ์ "ต่ำกว่าตลาด" คือราคาหลังต่อรองต่ำกว่าราคาตลาดต่อ ตร.ว. ตั้งแต่ ${Math.round(a.dealThreshold*100)}% ขึ้นไป</p>
   <p class="small muted">สมมติฐาน: ค่าใช้จ่ายซื้อ ${Math.round(a.buyCost*100)}% · รีโนเวท ${baht(a.renoPerSqm)} ฿/ตร.ม. (ตึกพร้อมใช้คิด 35%) · ราคาขายหลังรีโน ${baht(a.resalePerSqm)} ฿/ตร.ม. หักค่าขาย ${Math.round(a.sellCost*100)}% · ค่าเช่าทั้งตึก ${baht(a.rentPerSqm)} ฿/ตร.ม./ด. เต็ม ${Math.round(a.occupancy*100)}% ปรับได้ในแท็บสมมติฐาน</p>
-  <h3 style="margin-top:12px">แบ่งห้องให้นิสิตจุฬาฯ เช่า</h3>
-  <p class="small">คิดห้องละ ${a.roomGrossSqm} ตร.ม. (รวมทางเดิน/ห้องน้ำ) ค่าทำห้อง ${baht(a.roomFitout)} ฿/ห้อง ค่าเช่า <b class="num">${baht(M.roomRent)}</b> ฿/ห้อง/ด. ${M.roomFromData?'(มัธยฐานห้องเช่าที่บันทึก '+M.roomsL.length+' แห่ง)':'(ค่าตั้งต้น)'} เต็ม ${Math.round(a.roomOcc*100)}% หักค่าดำเนินการ ${Math.round(a.roomOpex*100)}% ผลตอบแทนสุทธิคิดจากต้นทุนรวมค่าทำห้อง</p>
+  <h3 style="margin-top:12px">ทดแทนคอนโดนิสิตจุฬาฯ</h3>
+  <p class="small">คอนโดในรัศมี ${a.chulaRadiusKm} กม. จากจุฬาฯ ราคามัธยฐาน <b class="num">${mb(M.cu.saleUnit,1)}</b> ต่อห้อง (${M.cu.unitSqm?Math.round(M.cu.unitSqm)+' ตร.ม.':'—'}, ${baht(M.cu.salePpm)} ฿/ตร.ม.) ค่าเช่ามัธยฐาน <b class="num">${baht(M.cu.rentUnit)}</b> ฿/ด. จาก ${M.cu.sale.length} ห้องขาย และ ${M.cu.rent.length} ห้องเช่า คอลัมน์ "ทดแทนคอนโดจุฬาฯ" แบ่งตึกเป็นห้องชุดแบบคอนโด ห้องละ ${a.suiteSqm} ตร.ม. รวมทางเดินและบันได ค่าทำห้อง ${baht(a.suiteFitout)} ฿/ห้อง แล้วเทียบต้นทุนต่อห้องกับราคาคอนโด ส่วนผลตอบแทนคิดค่าเช่าที่ ${Math.round(a.suiteRentFactor*100)}% ของคอนโด (<b class="num">${baht(M.cu.suiteRent)}</b> ฿/ด.) เพราะไม่มีสระว่ายน้ำและฟิตเนส เต็ม ${Math.round(a.suiteOcc*100)}% หักค่าดำเนินการ ${Math.round(a.suiteOpex*100)}%</p>
  </div>
  <div class="panel" style="padding:0">${rows.length?rows.map(({x,d})=>{
    const flag=d.disc==null?'<span class="chip condo">ไม่มีขนาดที่ดิน</span>':d.disc<=-a.dealThreshold?`<span class="chip good">ต่ำกว่าตลาด ${pct(d.disc)}</span>`:d.disc<0?`<span class="chip warn">ต่ำกว่าเล็กน้อย ${pct(d.disc)}</span>`:`<span class="chip bad">สูงกว่าตลาด ${pct(d.disc)}</span>`;
@@ -457,9 +459,9 @@ function viewDeals(M){
     <div><div class="k">ต้นทุน/ตร.ม. เทียบคอนโด</div><div class="num">${d.perSqm?baht(d.perSqm):'—'}</div><div class="small ${d.vsCondo!=null&&d.vsCondo<0?'':'muted'}" style="color:${d.vsCondo!=null&&d.vsCondo<0?'var(--good)':''}">${d.vsCondo!=null?pct(d.vsCondo)+' vs คอนโด':''}</div></div>
     <div><div class="k">กำไรถ้าขายต่อ</div><div class="num" style="color:${d.profit>0?'var(--good)':d.profit<0?'var(--bad)':''}">${d.profit!=null?mb(d.profit):'—'}</div><div class="small muted">${d.margin!=null?pct(d.margin)+' ของทุน':''}</div></div>
     <div><div class="k">ผลตอบแทนเช่า</div><div class="num">${d.yld!=null?(d.yld*100).toFixed(1)+'%':'—'}</div><div class="small muted">ต่อปี ก่อนภาษี</div></div>
-    <div><div class="k">แบ่งห้องนิสิต</div><div class="num" style="color:var(--room)">${d.stuYld!=null?(d.stuYld*100).toFixed(1)+'%':'—'}</div><div class="small muted">${d.rooms!=null?d.rooms+' ห้อง · จุฬาฯ '+km(x.distChula):'จุฬาฯ '+km(x.distChula)}</div></div>
+    <div><div class="k">ทดแทนคอนโดจุฬาฯ</div><div class="num" style="color:var(--room)">${d.perSuite!=null?mb(d.perSuite)+'/ห้อง':'—'}</div><div class="small muted">${d.suites!=null?d.suites+' ห้อง'+(d.vsCuUnit!=null?' · '+pct(d.vsCuUnit)+' vs คอนโด':'')+' · เช่า '+(d.cuYld*100).toFixed(1)+'%':'ไม่ทราบพื้นที่ใช้สอย'}</div><div class="small muted">จุฬาฯ ${km(x.distChula)}</div></div>
    </div>`}).join(''):`<div class="empty">ยังไม่มีตึกแถวที่กำลังขาย เพิ่มประกาศในแท็บรายการทั้งหมด</div>`}</div>
- <p class="small muted prose" style="max-width:none">ตึกแถวขายแบ่งห้องเป็นห้องชุดแบบคอนโดไม่ได้ถ้าไม่จดทะเบียนอาคารชุด ทางออกที่ใช้กันคือขายทั้งหลังให้คนที่อยากได้บ้านพร้อมออฟฟิศ หรือแบ่งห้องให้เช่ารายเดือน ถ้าให้นิสิตนักศึกษาเช่าเป็นหอพัก ต้องขอใบอนุญาตตาม พ.ร.บ.หอพัก และตรวจเรื่องการเปลี่ยนการใช้อาคาร (ทางหนีไฟ ห้องน้ำ) ก่อน ตัวเลขในหน้านี้เป็นการคัดกรองเบื้องต้น ควรตรวจโฉนด ผังเมือง และสภาพโครงสร้างก่อนตัดสินใจ</p>`;
+ <p class="small muted prose" style="max-width:none">ตึกแถวขายแบ่งห้องเป็นห้องชุดแบบคอนโดไม่ได้ถ้าไม่จดทะเบียนอาคารชุด ทางออกที่ใช้กันคือขายทั้งหลังให้คนที่อยากได้บ้านพร้อมออฟฟิศ หรือแบ่งห้องให้เช่ารายเดือน ถ้าแบ่งเป็นห้องชุดให้นิสิตเช่า อาจเข้าข่ายหอพัก (พ.ร.บ.หอพัก) หรืออาคารชุด/อพาร์ตเมนต์ ต้องตรวจเรื่องใบอนุญาตและการเปลี่ยนการใช้อาคาร (ทางหนีไฟ ห้องน้ำ) ก่อน ตัวเลขในหน้านี้เป็นการคัดกรองเบื้องต้น ควรตรวจโฉนด ผังเมือง และสภาพโครงสร้างก่อนตัดสินใจ</p>`;
 }
 
 function viewSettings(M){
@@ -502,12 +504,13 @@ function viewSettings(M){
    ${f('condoSalePerSqm','ราคาคอนโดอ้างอิง (฿/ตร.ม.)',a.condoSalePerSqm,'ใช้เมื่อมีข้อมูลคอนโดไม่ถึง 3 รายการ')}
    ${f('condoRentPerSqm','ค่าเช่าคอนโดอ้างอิง (฿/ตร.ม./ด.)',a.condoRentPerSqm)}
    <label>ใช้ข้อมูลคอนโดที่บันทึกไว้<select data-a="useCondoData" ${dis}><option value="true" ${a.useCondoData?'selected':''}>ใช่ เมื่อมีตั้งแต่ 3 รายการ</option><option value="false" ${a.useCondoData?'':'selected'}>ไม่ ใช้ค่าอ้างอิงเสมอ</option></select></label>
-   ${f('roomGrossSqm','พื้นที่ต่อห้องนิสิต (ตร.ม.)',a.roomGrossSqm,'รวมทางเดินและห้องน้ำ')}
-   ${f('roomFitout','ค่าทำห้องนิสิต (฿/ห้อง)',a.roomFitout,'ห้องน้ำ แอร์ เฟอร์นิเจอร์')}
-   ${f('roomRent','ค่าเช่าห้องนิสิตอ้างอิง (฿/ด.)',a.roomRent,'ใช้เมื่อมีข้อมูลห้องเช่าไม่ถึง 3 แห่ง')}
-   ${f('roomOcc','อัตราเข้าพักห้องนิสิต',a.roomOcc,'ช่วงปิดเทอมห้องว่างบางส่วน')}
-   ${f('roomOpex','ค่าดำเนินการห้องนิสิต',a.roomOpex,'แม่บ้าน ส่วนกลาง ซ่อมบำรุง')}
-   <label>ใช้ข้อมูลห้องเช่าที่บันทึกไว้<select data-a="useRoomData" ${dis}><option value="true" ${a.useRoomData?'selected':''}>ใช่ เมื่อมีตั้งแต่ 3 แห่ง</option><option value="false" ${a.useRoomData?'':'selected'}>ไม่ ใช้ค่าอ้างอิงเสมอ</option></select></label>
+   ${f('chulaRadiusKm','รัศมีคอนโดเทียบรอบจุฬาฯ (กม.)',a.chulaRadiusKm)}
+   ${f('suiteSqm','พื้นที่ต่อห้องชุดในตึก (ตร.ม.)',a.suiteSqm,'รวมทางเดินและบันได')}
+   ${f('suiteFitout','ค่าทำห้องชุด (฿/ห้อง)',a.suiteFitout,'ห้องน้ำ ครัวเล็ก แอร์ เฟอร์นิเจอร์')}
+   ${f('suiteRentFactor','ค่าเช่าเทียบคอนโดจุฬาฯ',a.suiteRentFactor,'0.75 = 75% ของค่าเช่าคอนโด')}
+   ${f('suiteRent','ค่าเช่าห้องชุดอ้างอิง (฿/ด.)',a.suiteRent,'ใช้เมื่อมีคอนโดเช่าใกล้จุฬาฯ ไม่ถึง 3 ห้อง')}
+   ${f('suiteOcc','อัตราเข้าพักห้องชุด',a.suiteOcc)}
+   ${f('suiteOpex','ค่าดำเนินการห้องชุด',a.suiteOpex,'ส่วนกลาง แม่บ้าน ซ่อมบำรุง')}
   </div>
   <p class="small muted">ค่าตั้งต้นเป็นตัวเลขกลางๆ สำหรับเริ่มต้น ควรปรับตามใบเสนอราคาผู้รับเหมาและข้อมูลที่เก็บได้จริง</p>
  </section></div>`;
@@ -595,7 +598,7 @@ document.addEventListener('change',e=>{
  if(t.id==='sort'){S.sort=t.value;savePrefs();render();return;}
  if(t.id==='subjMaps'){const p=parseMaps(t.value);if(p){S.settings.subject.lat=p.lat;S.settings.subject.lng=p.lng;saveSettings();render();}else toast('อ่านพิกัดจากลิงก์นี้ไม่ได้ ลองเปิดหมุดใน Google Maps แล้วคัดลอกลิงก์ที่มี @lat,lng');return;}
  if(t.dataset.s){const k=t.dataset.s;S.settings.subject[k]=t.type==='number'?num(t.value):t.value;saveSettings();render();return;}
- if(t.dataset.a){const k=t.dataset.a;S.settings.a[k]=(k==='useCondoData'||k==='useRoomData')?t.value==='true':num(t.value)??DEFAULT_SETTINGS.a[k];saveSettings();render();return;}
+ if(t.dataset.a){const k=t.dataset.a;S.settings.a[k]=k==='useCondoData'?t.value==='true':num(t.value)??DEFAULT_SETTINGS.a[k];saveSettings();render();return;}
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();if(S.pickNew){S.pickNew=false;render();}}});
 window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(['overview','ledger','deals','settings'].includes(h)){S.tab=h;render();}});
