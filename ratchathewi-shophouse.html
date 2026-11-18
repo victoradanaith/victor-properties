@@ -1,0 +1,569 @@
+<title>ราคาตึกแถวราชเทวี</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anuphan:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: survey-ledger workspace. Header with subject valuation, tabbed panes (overview map + chart, ledger, deals, assumptions). */
+:root{
+  --bg:#eef1ef; --surface:#fbfcfb; --sunk:#e3e8e5; --line:#cdd5d1;
+  --ink:#16251f; --muted:#5b6b64;
+  --accent:#0f6b5c; --accent-soft:#d4ebe5;
+  --gold:#b0811d; --gold-soft:#f5e8c8;
+  --bts:#5aa832; --good:#1f7a3d; --good-soft:#dbefdf; --warn:#a2611a; --warn-soft:#f7e6d0; --bad:#b2392f; --bad-soft:#f6dcd8;
+  --road:#bfc8c3; --water:#a9c7d8; --map-filter:none;
+  --f-display:"Anuphan","IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Thai",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1714; --surface:#16211d; --sunk:#1d2a25; --line:#2c3b35; --ink:#e3ece8; --muted:#93a49c;
+  --accent:#4fc0a8; --accent-soft:#16372f; --gold:#e0b04b; --gold-soft:#3a2f14; --bts:#7cc955;
+  --good:#5fc27a; --good-soft:#163222; --warn:#e29a4e; --warn-soft:#3a2814; --bad:#ef7a6e; --bad-soft:#3d1c19; --road:#34443e; --water:#28465a; --map-filter:brightness(.82) contrast(1.05) saturate(.85); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1714; --surface:#16211d; --sunk:#1d2a25; --line:#2c3b35; --ink:#e3ece8; --muted:#93a49c;
+  --accent:#4fc0a8; --accent-soft:#16372f; --gold:#e0b04b; --gold-soft:#3a2f14; --bts:#7cc955;
+  --good:#5fc27a; --good-soft:#163222; --warn:#e29a4e; --warn-soft:#3a2814; --bad:#ef7a6e; --bad-soft:#3d1c19; --road:#34443e; --water:#28465a; --map-filter:brightness(.82) contrast(1.05) saturate(.85); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1240px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.25}
+h1{font-size:1.65rem;font-weight:700}
+h2{font-size:1.15rem;font-weight:600}
+h3{font-size:1rem;font-weight:600}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.82rem}
+.eyebrow{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+header.top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 24px;align-items:end;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.subject-line{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;color:var(--muted)}
+.pin{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 3px var(--gold-soft)}
+.valuation{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;min-width:260px}
+.valuation .big{font-family:var(--f-display);font-size:1.6rem;font-weight:700;color:var(--gold)}
+.status{font-size:.8rem;color:var(--muted);margin-top:8px}
+.status.err{color:var(--bad)}
+
+nav.tabs{display:flex;gap:4px;margin:16px 0;flex-wrap:wrap}
+nav.tabs button{background:none;border:1px solid transparent;border-radius:8px;padding:7px 14px;color:var(--muted);font-weight:500}
+nav.tabs button[aria-selected="true"]{background:var(--surface);border-color:var(--line);color:var(--ink)}
+nav.tabs .count{font-family:var(--f-mono);font-size:.75rem;background:var(--sunk);border-radius:99px;padding:1px 7px;margin-left:6px}
+
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+.stat .v{font-family:var(--f-mono);font-size:1.25rem;font-weight:500;margin-top:2px}
+.stat .s{font-size:.78rem;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+.panel-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+svg text{font-family:var(--f-body)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.78rem;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar input[type=search]{flex:1 1 220px;min-width:0}
+input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:7px 10px;width:100%}
+.toolbar select{width:auto}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:7px 14px;font-weight:500;white-space:nowrap}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.ghost{border-color:transparent;background:none}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.74rem;letter-spacing:.04em;color:var(--muted);font-weight:600;background:var(--sunk);white-space:nowrap;position:sticky;top:0}
+td.r,th.r{text-align:right}
+tbody tr:hover{background:var(--sunk)}
+tbody tr{cursor:pointer}
+tr:last-child td{border-bottom:none}
+.t-title{font-weight:500}
+.chip{display:inline-block;font-size:.72rem;border-radius:99px;padding:1px 8px;font-weight:600;white-space:nowrap}
+.chip.shop{background:var(--accent-soft);color:var(--accent)}
+.chip.rent{background:var(--gold-soft);color:var(--gold)}
+.chip.sold{background:var(--ink);color:var(--surface)}
+.chip.condo{background:var(--sunk);color:var(--muted);border:1px solid var(--line)}
+.chip.good{background:var(--good-soft);color:var(--good)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.ex{background:none;border:1px dashed var(--muted);color:var(--muted)}
+
+.drawer{position:fixed;inset:0;background:rgba(10,20,16,.45);display:flex;justify-content:flex-end;z-index:20}
+.drawer .sheet{background:var(--bg);width:min(560px,100%);height:100%;overflow-y:auto;padding:20px max(16px,env(safe-area-inset-right,0px)) 40px 20px;padding-top:calc(20px + env(safe-area-inset-top,0px));border-left:1px solid var(--line)}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form .full{grid-column:1/-1}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted);font-weight:500}
+.form .derived{grid-column:1/-1;background:var(--sunk);border-radius:8px;padding:10px 12px;font-size:.85rem;display:flex;gap:16px;flex-wrap:wrap}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;align-items:center}
+.notice{background:var(--gold-soft);border:1px solid var(--gold);color:var(--ink);border-radius:8px;padding:10px 14px;font-size:.85rem;margin-bottom:14px}
+.prose{max-width:68ch}
+.prose p{margin:.4em 0}
+.settings{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.settings label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted)}
+.settings .hint{font-size:.74rem}
+.dealcard{display:grid;grid-template-columns:minmax(0,1fr) repeat(4,minmax(0,auto));gap:6px 22px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.dealcard:last-child{border-bottom:none}
+.dealcard .k{font-size:.72rem;color:var(--muted)}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+@media (max-width:900px){.grid2{grid-template-columns:minmax(0,1fr)}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}header.top{grid-template-columns:minmax(0,1fr)}.dealcard{grid-template-columns:repeat(2,minmax(0,1fr))}.dealcard>:first-child{grid-column:1/-1}}
+@media (max-width:480px){.form{grid-template-columns:minmax(0,1fr)}.valuation{min-width:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.lmap{height:480px;border-radius:8px;overflow:hidden;background:var(--sunk);border:1px solid var(--line)}
+.lmap.small{height:280px}
+.lmap .leaflet-image-layer{filter:var(--map-filter)}
+.leaflet-container{font-family:var(--f-body)!important}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--surface);color:var(--ink)}
+.leaflet-popup-content{margin:10px 12px;font-size:.85rem;line-height:1.45}
+.leaflet-control-attribution{font-size:10px}
+.subj-pin{width:22px;height:22px;border-radius:50% 50% 50% 0;background:var(--gold);transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.map-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.picking .leaflet-container{cursor:crosshair!important}
+@media (max-width:600px){.lmap{height:380px}}
+</style>
+<style>.leaflet-image-layer,.leaflet-layer,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-pane,.leaflet-pane>canvas,.leaflet-pane>svg,.leaflet-tile,.leaflet-tile-container,.leaflet-zoom-box{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-tile::selection{background:0 0}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}.leaflet-marker-icon,.leaflet-marker-shadow{display:block}.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}.leaflet-container .leaflet-marker-pane img,.leaflet-container .leaflet-shadow-pane img,.leaflet-container .leaflet-tile,.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-image-layer{max-width:none!important;max-height:none!important;width:auto;padding:0}.leaflet-container img.leaflet-tile{mix-blend-mode:plus-lighter}.leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}.leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}.leaflet-container{-webkit-tap-highlight-color:transparent}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,.4)}.leaflet-tile{filter:inherit;visibility:hidden}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane svg{-moz-user-select:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}.leaflet-bottom,.leaflet-top{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}svg.leaflet-zoom-animated{will-change:transform}.leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-pan-anim .leaflet-tile,.leaflet-zoom-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-control,.leaflet-popup-pane{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-image-layer,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-image-layer.leaflet-interactive,.leaflet-marker-icon.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container{background:#ddd;outline-offset:1px}.leaflet-container a{color:#0078a8}.leaflet-zoom-box{border:2px dotted #38f;background:rgba(255,255,255,.5)}.leaflet-container{font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;font-size:12px;font-size:.75rem;line-height:1.5}.leaflet-bar{box-shadow:0 1px 5px rgba(0,0,0,.65);border-radius:4px}.leaflet-bar a{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}.leaflet-bar a,.leaflet-control-layers-toggle{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:focus,.leaflet-bar a:hover{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:bold 18px 'Lucida Console',Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px rgba(0,0,0,.4);background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-image:url(images/layers.png);width:36px;height:36px}.leaflet-retina .leaflet-control-layers-toggle{background-image:url(images/layers-2x.png);background-size:26px 26px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers label{display:block;font-size:13px;font-size:1.08333em}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(images/marker-icon.png)}.leaflet-container .leaflet-control-attribution{background:#fff;background:rgba(255,255,255,.8);margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333;line-height:1.4}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:focus,.leaflet-control-attribution a:hover{text-decoration:underline}.leaflet-attribution-flag{display:inline!important;vertical-align:baseline!important;width:1em;height:.6669em}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;white-space:nowrap;-moz-box-sizing:border-box;box-sizing:border-box;background:rgba(255,255,255,.8);text-shadow:1px 1px #fff}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-bar,.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers{box-shadow:none}.leaflet-touch .leaflet-bar,.leaflet-touch .leaflet-control-layers{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 24px 13px 20px;line-height:1.3;font-size:13px;font-size:1.08333em;min-height:1px}.leaflet-popup-content p{margin:17px 0;margin:1.3em 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-top:-1px;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;pointer-events:auto;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#fff;color:#333;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;border:none;text-align:center;width:24px;height:24px;font:16px/24px Tahoma,Verdana,sans-serif;color:#757575;text-decoration:none;background:0 0}.leaflet-container a.leaflet-popup-close-button:focus,.leaflet-container a.leaflet-popup-close-button:hover{color:#585858}.leaflet-popup-scrolled{overflow:auto}.leaflet-oldie .leaflet-popup-content-wrapper{-ms-zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto}.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}.leaflet-tooltip.leaflet-interactive{cursor:pointer;pointer-events:auto}.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before,.leaflet-tooltip-top:before{position:absolute;pointer-events:none;border:6px solid transparent;background:0 0;content:""}.leaflet-tooltip-bottom{margin-top:6px}.leaflet-tooltip-top{margin-top:-6px}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left{margin-left:-6px}.leaflet-tooltip-right{margin-left:6px}.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{top:50%;margin-top:-6px}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}@media print{.leaflet-control{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">สมุดราคาอ้างอิง · ย่านรถไฟฟ้าราชเทวี</div>
+      <h1>ราคาตึกแถวราชเทวี</h1>
+      <div class="subject-line"><span class="pin"></span><span id="subjAddr">ตึกแถวใกล้ปั๊ม LPG</span></div>
+      <div class="status" id="status">กำลังเชื่อมต่อฐานข้อมูล…</div>
+    </div>
+    <div class="valuation" id="valuation"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <main id="view"></main>
+</div>
+<div id="drawerRoot"></div>
+
+<script>
+// ---------- constants ----------
+const STATIONS=[
+ {n:'BTS ราชเทวี',lat:13.7521,lng:100.5316,main:true},
+ {n:'BTS พญาไท',lat:13.7570,lng:100.5340},
+ {n:'BTS สยาม',lat:13.7456,lng:100.5341},
+ {n:'BTS สนามกีฬาฯ',lat:13.7465,lng:100.5292},
+ {n:'MRT สามย่าน',lat:13.7325,lng:100.5295},
+ {n:'MRT หัวลำโพง',lat:13.7377,lng:100.5170}
+];
+const RATCHATHEWI=STATIONS[0];
+const TYPES={
+ shop_sale:{label:'ตึกแถวขาย',chip:'shop'},
+ shop_sold:{label:'ตึกแถวขายแล้ว (ราคาจริง)',chip:'sold'},
+ shop_rent:{label:'ตึกแถวให้เช่า',chip:'rent'},
+ condo_sale:{label:'คอนโดขาย',chip:'condo'},
+ condo_rent:{label:'คอนโดเช่า',chip:'condo'}
+};
+const CONDITIONS={orig:'สภาพเดิม ใช้ได้',full:'ต้องรีโนเวททั้งหลัง',ready:'พร้อมใช้',reno:'รีโนแล้ว'};
+const STATUSES={active:'ยังขาย/ว่าง',talk:'กำลังคุย',done:'ปิดการขาย/เช่าแล้ว',gone:'หายไป/ถอนประกาศ'};
+const DEFAULT_SETTINGS={
+ subject:{name:'ตึกแถวใกล้ปั๊ม LPG',address:'ตึกแถวใกล้ปั๊ม LPG',lat:13.752391,lng:100.525804,landSqw:null,usableSqm:null,floors:null,units:1,notes:''},
+ a:{radiusKm:1.5,negotiation:0.08,dealThreshold:0.15,buyCost:0.03,renoPerSqm:15000,resalePerSqm:85000,rentPerSqm:420,occupancy:0.9,sellCost:0.05,condoSalePerSqm:150000,condoRentPerSqm:650,useCondoData:true}
+};
+
+// ---------- state ----------
+const S={listings:[],settings:structuredClone(DEFAULT_SETTINGS),tab:'overview',q:'',ftype:'all',fexample:'all',sort:'dist',db:null,canWrite:true,loaded:false};
+function loadPrefs(){try{const p=JSON.parse(localStorage.getItem('rt-prefs')||'{}');if(p.tab)S.tab=p.tab;if(p.sort)S.sort=p.sort;}catch(e){}}
+function savePrefs(){try{localStorage.setItem('rt-prefs',JSON.stringify({tab:S.tab,sort:S.sort}))}catch(e){}}
+loadPrefs();
+if(['overview','ledger','deals','settings'].includes(location.hash.slice(1)))S.tab=location.hash.slice(1);
+
+// ---------- helpers ----------
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>(v===''||v==null||isNaN(+v))?null:+v;
+function hav(a,b){if(a.lat==null||b.lat==null||a.lng==null||b.lng==null)return null;const R=6371,r=x=>x*Math.PI/180;const dLa=r(b.lat-a.lat),dLo=r(b.lng-a.lng);const h=Math.sin(dLa/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+function mb(v,d=2){if(v==null||!isFinite(v))return '—';return (v/1e6).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d})+' ล.';}
+function baht(v){if(v==null||!isFinite(v))return '—';return Math.round(v).toLocaleString('th-TH');}
+function pct(v,d=0){if(v==null||!isFinite(v))return '—';return (v>0?'+':'')+(v*100).toFixed(d)+'%';}
+function km(v){if(v==null)return '—';return v<1?Math.round(v*1000)+' ม.':v.toFixed(2)+' กม.';}
+function quant(arr,q){const a=arr.filter(x=>x!=null&&isFinite(x)).sort((x,y)=>x-y);if(!a.length)return null;const p=(a.length-1)*q,lo=Math.floor(p),hi=Math.ceil(p);return a[lo]+(a[hi]-a[lo])*(p-lo);}
+function parseMaps(s){if(!s)return null;let m=s.match(/@(-?\d+\.\d+),\s*(-?\d+\.\d+)/)||s.match(/[?&]q=(-?\d+\.\d+),\s*(-?\d+\.\d+)/)||s.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)||s.match(/^\s*(-?\d{1,2}\.\d+)\s*,\s*(-?\d{2,3}\.\d+)\s*$/);return m?{lat:+m[1],lng:+m[2]}:null;}
+
+// ---------- derived ----------
+function derive(l){
+ const subj=S.settings.subject;
+ const d={...l};
+ d.price=num(l.price);d.rent=num(l.rent);d.landSqw=num(l.landSqw);d.usableSqm=num(l.usableSqm);
+ d.ppw=(d.price&&d.landSqw)?d.price/d.landSqw:null;
+ d.ppm=(d.price&&d.usableSqm)?d.price/d.usableSqm:null;
+ d.rpm=(d.rent&&d.usableSqm)?d.rent/d.usableSqm:null;
+ d.distBts=hav(l,RATCHATHEWI);d.distSubj=hav(l,subj);
+ return d;
+}
+function market(){
+ const a=S.settings.a;const L=S.listings.map(derive);
+ const inR=x=>x.distSubj==null||x.distSubj<=a.radiusKm;
+ const asks=L.filter(x=>x.type==='shop_sale'&&x.ppw&&inR(x)&&!x.example);
+ const sold=L.filter(x=>x.type==='shop_sold'&&x.ppw&&inR(x)&&!x.example);
+ const askMed=quant(asks.map(x=>x.ppw),.5);
+ const soldMed=quant(sold.map(x=>x.ppw),.5);
+ let mkt=null,basis='';
+ if(sold.length>=2){mkt=soldMed;basis=`มัธยฐานราคาขายจริง ${sold.length} รายการ`;}
+ else if(askMed!=null){mkt=askMed*(1-a.negotiation);basis=`มัธยฐานราคาประกาศ ${asks.length} รายการ หักต่อรอง ${Math.round(a.negotiation*100)}%`;}
+ const lo=quant((sold.length>=2?sold.map(x=>x.ppw):asks.map(x=>x.ppw*(1-a.negotiation))),.25);
+ const hi=quant((sold.length>=2?sold.map(x=>x.ppw):asks.map(x=>x.ppw*(1-a.negotiation))),.75);
+ const askPpm=quant(asks.map(x=>x.ppm),.5);
+ const rents=L.filter(x=>x.type==='shop_rent'&&x.rpm&&inR(x)&&!x.example);
+ const rentMed=quant(rents.map(x=>x.rpm),.5);
+ const condoS=L.filter(x=>x.type==='condo_sale'&&x.ppm&&!x.example);
+ const condoR=L.filter(x=>x.type==='condo_rent'&&x.rpm&&!x.example);
+ const condoSale=(a.useCondoData&&condoS.length>=3)?quant(condoS.map(x=>x.ppm),.5):a.condoSalePerSqm;
+ const condoRent=(a.useCondoData&&condoR.length>=3)?quant(condoR.map(x=>x.rpm),.5):a.condoRentPerSqm;
+ return {L,asks,sold,askMed,soldMed,mkt,lo,hi,basis,askPpm,rents,rentMed,condoSale,condoRent,condoSFromData:a.useCondoData&&condoS.length>=3,condoRFromData:a.useCondoData&&condoR.length>=3,condoS,condoR};
+}
+function dealCalc(x,M){
+ const a=S.settings.a;if(!x.price)return null;
+ const u=x.usableSqm;
+ const reno=u?(x.condition==='ready'||x.condition==='reno'?0.35:1)*a.renoPerSqm*u:null;
+ const allIn=x.price*(1+a.buyCost)+(reno||0);
+ const perSqm=u?allIn/u:null;
+ const exit=u?u*a.resalePerSqm*(1-a.sellCost):null;
+ const profit=exit!=null?exit-allIn:null;
+ const yld=u?(u*a.rentPerSqm*12*a.occupancy)/allIn:null;
+ const vsCondo=perSqm?perSqm/M.condoSale-1:null;
+ const condoEq=u?u*M.condoSale:null; // what the same area costs as condo
+ const disc=(M.mkt&&x.ppw)?(x.ppw*(1-a.negotiation))/M.mkt-1:null;
+ return {reno,allIn,perSqm,exit,profit,margin:profit!=null?profit/allIn:null,yld,vsCondo,condoEq,disc};
+}
+
+// ---------- db ----------
+const setStatus=(t,err)=>{const el=$('#status');el.textContent=t;el.className='status'+(err?' err':'');};
+async function boot(){
+ render();
+ const t=setTimeout(()=>{if(!S.loaded)setStatus('ยังเชื่อมต่อฐานข้อมูลไม่ได้ ข้อมูลที่เห็นอาจไม่ครบ',true)},10000);
+ let db=null;try{db=await window.claude?.use?.('db');}catch(e){}
+ if(!db){clearTimeout(t);S.canWrite=false;setStatus('ไม่มีฐานข้อมูลในมุมมองนี้ ลงชื่อเข้าใช้ claude.ai เพื่อดูและบันทึกข้อมูล',true);S.loaded=true;render();return;}
+ S.db=db;
+ db.collection('listings').onSnapshot(snap=>{
+   S.listings=snap.docs.map(d=>({id:d.id,...d.data()}));
+   if(!snap.metadata.fromCache){S.loaded=true;clearTimeout(t);setStatus(`บันทึกไว้ ${S.listings.length} รายการ · อัปเดตสด`);}
+   render();
+ },e=>{clearTimeout(t);setStatus('อ่านฐานข้อมูลไม่ได้ ('+e.code+')',true);});
+ db.doc('settings/main').onSnapshot(s=>{
+   if(s.exists){const d=s.data();S.settings={subject:{...DEFAULT_SETTINGS.subject,...(d.subject||{})},a:{...DEFAULT_SETTINGS.a,...(d.a||{})}};}
+   render();
+ },()=>{});
+}
+async function saveSettings(){
+ if(!S.db)return;
+ try{await S.db.doc('settings/main').set(JSON.parse(JSON.stringify(S.settings)));toast('บันทึกแล้ว');}
+ catch(e){handleWriteErr(e);}
+}
+function handleWriteErr(e){if(e&&e.code==='invalid_argument'){S.canWrite=false;setStatus('บัญชีนี้ดูได้อย่างเดียว แก้ไขข้อมูลไม่ได้',true);render();}else toast('บันทึกไม่สำเร็จ: '+(e?.code||e));}
+let toastT;function toast(m){setStatus(m);clearTimeout(toastT);toastT=setTimeout(()=>setStatus(`บันทึกไว้ ${S.listings.length} รายการ · อัปเดตสด`),2500);}
+
+// ---------- render ----------
+function render(){
+ const M=market();
+ renderHeader(M);
+ const tabs=[['overview','ภาพรวม'],['ledger','รายการทั้งหมด',S.listings.length],['deals','หาดีล',M.L.filter(x=>x.type==='shop_sale'&&x.status!=='done'&&x.status!=='gone').length],['settings','ทรัพย์หลัก & สมมติฐาน']];
+ $('#tabs').innerHTML=tabs.map(([k,l,c])=>`<button role="tab" aria-selected="${S.tab===k}" data-tab="${k}">${l}${c!=null?`<span class="count">${c}</span>`:''}</button>`).join('');
+ const v=$('#view');
+ if(S.tab==='overview'){v.innerHTML=viewOverview(M);mountMainMap(M);}
+ else if(S.tab==='ledger')v.innerHTML=viewLedger(M);
+ else if(S.tab==='deals')v.innerHTML=viewDeals(M);
+ else v.innerHTML=viewSettings(M);
+}
+function renderHeader(M){
+ const s=S.settings.subject;$('#subjAddr').textContent=s.address;
+ let h='<div class="eyebrow">มูลค่าประมาณของทรัพย์หลัก</div>';
+ if(!M.mkt)h+=`<div class="big">—</div><div class="small muted">ยังไม่มีตึกแถวเทียบในรัศมี ${S.settings.a.radiusKm} กม.</div>`;
+ else if(!num(s.landSqw))h+=`<div class="big num">${mb(M.mkt)}<span class="small muted"> /ตร.ว.</span></div><div class="small muted">กรอกขนาดที่ดินในแท็บ "ทรัพย์หลัก" เพื่อคำนวณมูลค่ารวม</div>`;
+ else{const w=+s.landSqw;h+=`<div class="big num">${mb(M.mkt*w,1)}</div><div class="small muted num">ช่วง ${mb(M.lo*w,1)} – ${mb(M.hi*w,1)} · ${w} ตร.ว. × ${mb(M.mkt)}/ตร.ว.</div><div class="small muted">${esc(M.basis)}</div>`;}
+ $('#valuation').innerHTML=h;
+}
+
+function viewOverview(M){
+ const a=S.settings.a;
+ const nEx=S.listings.filter(x=>x.example).length;
+ return `
+ ${nEx?`<div class="notice">มี ${nEx} รายการที่เป็นตัวอย่าง (ไม่นำไปคำนวณ) ลบได้ในแท็บรายการทั้งหมด</div>`:''}
+ <div class="stats">
+  <div class="stat"><div class="eyebrow">ราคาประกาศ ตึกแถว</div><div class="v">${mb(M.askMed)}<span class="small muted"> /ตร.ว.</span></div><div class="s">มัธยฐาน ${M.asks.length} รายการ ในรัศมี ${a.radiusKm} กม.</div></div>
+  <div class="stat"><div class="eyebrow">ราคาขายจริง</div><div class="v">${mb(M.soldMed)}<span class="small muted"> /ตร.ว.</span></div><div class="s">${M.sold.length?M.sold.length+' รายการ':'ยังไม่มีข้อมูลขายจริง'}</div></div>
+  <div class="stat"><div class="eyebrow">ค่าเช่าตึกแถว</div><div class="v">${M.rentMed?baht(M.rentMed):'—'}<span class="small muted"> ฿/ตร.ม./ด.</span></div><div class="s">${M.rents.length?M.rents.length+' รายการ':'ยังไม่มีข้อมูลค่าเช่า'}</div></div>
+  <div class="stat"><div class="eyebrow">คอนโดราชเทวี</div><div class="v">${baht(M.condoSale)}<span class="small muted"> ฿/ตร.ม.</span></div><div class="s">${M.condoSFromData?'มัธยฐาน '+M.condoS.length+' รายการ':'ค่าตั้งต้น ปรับได้ในสมมติฐาน'}</div></div>
+ </div>
+ <div class="grid2">
+  <section class="panel"><div class="panel-head"><h2>แผนที่ทรัพย์</h2><span class="small muted">เส้นประ 500 ม. และ 1 กม. รอบ BTS ราชเทวี</span></div><div id="mainMapSlot"></div>
+   <div class="map-tools">
+    <button class="btn primary" data-act="pinNew" ${S.canWrite?'':'disabled'}>+ ปักหมุดทรัพย์ใหม่</button>
+    <span class="small muted" id="pinHint">${S.pickNew?'คลิกบนแผนที่ตรงตำแหน่งทรัพย์ <button class="btn ghost small" data-act="pinCancel">ยกเลิก</button>':'ลากหมุดสีทองเพื่อย้ายตำแหน่งทรัพย์หลัก คลิกจุดอื่นเพื่อดูรายละเอียด'}</span>
+   </div>
+   <div class="legend"><span><i style="background:var(--gold)"></i>ทรัพย์หลัก</span><span><i style="background:var(--accent)"></i>ตึกแถวขาย</span><span><i style="background:var(--ink)"></i>ขายแล้ว</span><span><i style="background:var(--warn)"></i>ให้เช่า</span><span><i style="background:var(--muted)"></i>คอนโด</span></div></section>
+  <section class="panel"><div class="panel-head"><h2>ราคาต่อตารางวา เทียบระยะทาง</h2><span class="small muted">ตึกแถวขาย/ขายแล้ว</span></div>${chartSvg(M)}
+   <p class="small muted">แกนนอนคือระยะจากทรัพย์หลัก เส้นประคือมูลค่าตลาดที่ใช้ประเมิน (${esc(M.basis||'ยังไม่มีข้อมูล')})</p></section>
+ </div>`;
+}
+
+// ---------- real map (Leaflet + stitched OpenStreetMap image) ----------
+const MAP_IMG='ratchathewi-map-z17.jpg';
+const MAP_B=[[13.723376590315016,100.5084228515625],[13.766063482382863,100.5523681640625]];
+const OSM_ATTR='© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+const tok=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#888';
+const hasL=()=>typeof L!=='undefined';
+function baseMap(el){
+ const m=L.map(el,{minZoom:14,maxZoom:19,zoomSnap:0.5,maxBounds:L.latLngBounds(MAP_B).pad(0.1)});
+ L.imageOverlay(MAP_IMG,MAP_B,{attribution:OSM_ATTR}).addTo(m);
+ m.attributionControl.setPrefix(false);
+ return m;
+}
+function subjIcon(){return L.divIcon({className:'',html:'<div class="subj-pin"></div>',iconSize:[22,22],iconAnchor:[11,27],tooltipAnchor:[0,-26]});}
+function typeColor(t){return t==='shop_sale'?tok('--accent'):t==='shop_sold'?tok('--ink'):t==='shop_rent'?tok('--warn'):tok('--muted');}
+let MM=null;
+function mountMainMap(M){
+ const slot=$('#mainMapSlot');if(!slot)return;
+ if(!hasL()){slot.innerHTML='<div class="empty">โหลดแผนที่ไม่สำเร็จ ลองเปิดหน้าใหม่</div>';return;}
+ if(!MM){
+  const el=document.createElement('div');el.className='lmap';slot.appendChild(el);
+  const map=baseMap(el);map.setView([13.7495,100.5275],16);
+  [500,1000].forEach(r=>L.circle([RATCHATHEWI.lat,RATCHATHEWI.lng],{radius:r,color:tok('--bts'),weight:2,dashArray:'6 6',fill:false,interactive:false}).addTo(map));
+  const layer=L.layerGroup().addTo(map);
+  map.on('click',e=>{if(!S.pickNew)return;S.pickNew=false;render();openDrawer(null,{lat:+e.latlng.lat.toFixed(6),lng:+e.latlng.lng.toFixed(6)});});
+  map.on('popupopen',e=>{const b=e.popup.getElement()?.querySelector('[data-open]');if(b)b.onclick=()=>{map.closePopup();openDrawer(b.dataset.open);};});
+  MM={el,map,layer};
+ }else slot.appendChild(MM.el);
+ slot.classList.toggle('picking',!!S.pickNew);
+ setTimeout(()=>MM.map.invalidateSize(),0);
+ MM.layer.clearLayers();
+ M.L.filter(x=>x.lat!=null&&x.lng!=null).forEach(x=>{
+  const t=TYPES[x.type]||{label:x.type};
+  const val=x.type.endsWith('rent')?(x.rent?baht(x.rent)+' ฿/เดือน':''):(x.price?mb(x.price):'ไม่ทราบราคา')+(x.ppw?` · ${mb(x.ppw)}/ตร.ว.`:'');
+  L.circleMarker([x.lat,x.lng],{radius:8,color:'#fff',weight:2,fillColor:typeColor(x.type),fillOpacity:x.example?.5:1})
+   .bindTooltip(esc(x.title))
+   .bindPopup(`<b>${esc(x.title)}</b><br><span class="muted">${t.label}</span><br>${val}<br>ห่างทรัพย์หลัก ${km(x.distSubj)} · BTS ${km(x.distBts)}<br><button class="btn" style="margin-top:6px" data-open="${esc(x.id)}">ดู/แก้ไข</button>`)
+   .addTo(MM.layer);
+ });
+ const s=S.settings.subject;
+ if(s.lat!=null&&s.lng!=null){
+  const mk=L.marker([s.lat,s.lng],{icon:subjIcon(),draggable:S.canWrite&&!!S.db,zIndexOffset:1000}).bindTooltip('ทรัพย์หลัก: '+esc(s.name),{permanent:true,direction:'top'}).addTo(MM.layer);
+  mk.on('dragend',()=>{const p=mk.getLatLng();S.settings.subject.lat=+p.lat.toFixed(6);S.settings.subject.lng=+p.lng.toFixed(6);saveSettings();render();});
+ }
+}
+let DM=null,DMk=null;
+function mountPicker(x){
+ const el=$('#pickMap');if(!el)return;
+ if(!hasL()){el.innerHTML='<div class="empty">โหลดแผนที่ไม่สำเร็จ ใส่พิกัดเองได้</div>';return;}
+ DM=baseMap(el);const s=S.settings.subject;
+ const c=(x.lat!=null&&x.lng!=null)?[x.lat,x.lng]:[s.lat??RATCHATHEWI.lat,s.lng??RATCHATHEWI.lng];
+ DM.setView(c,17);
+ if(s.lat!=null)L.marker([s.lat,s.lng],{icon:subjIcon(),interactive:false,opacity:.7}).addTo(DM);
+ DMk=null;if(x.lat!=null&&x.lng!=null)placePick(x.lat,x.lng,false);
+ if(S.canWrite)DM.on('click',e=>placePick(e.latlng.lat,e.latlng.lng,true));
+ setTimeout(()=>DM&&DM.invalidateSize(),50);
+}
+function placePick(lat,lng,write){
+ if(!DM)return;
+ if(!DMk){DMk=L.circleMarker([lat,lng],{radius:9,color:'#fff',weight:3,fillColor:typeColor($('#f_type')?.value),fillOpacity:1}).addTo(DM);}
+ else DMk.setLatLng([lat,lng]);
+ if(write){$('#f_lat').value=lat.toFixed(6);$('#f_lng').value=lng.toFixed(6);updDerived();}
+}
+function syncPick(){const la=num($('#f_lat')?.value),ln=num($('#f_lng')?.value);if(la!=null&&ln!=null&&DM){placePick(la,ln,false);DM.panTo([la,ln]);}}
+
+function chartSvg(M){
+ const pts=M.L.filter(x=>(x.type==='shop_sale'||x.type==='shop_sold')&&x.ppw&&x.distSubj!=null);
+ if(!pts.length)return `<div class="empty">เพิ่มตึกแถวที่มีราคาและขนาดที่ดินเพื่อดูกราฟ</div>`;
+ const W=560,H=320,L=56,R=16,T=16,B=40;
+ const xmax=Math.max(1,Math.ceil(Math.max(...pts.map(p=>p.distSubj))*2)/2);
+ const ymaxRaw=Math.max(...pts.map(p=>p.ppw),M.mkt||0)/1e6;const step=ymaxRaw>2.5?0.5:0.25;const ymax=Math.ceil(ymaxRaw/step)*step+step;
+ const X=v=>L+(v/xmax)*(W-L-R),Y=v=>T+(1-v/ymax)*(H-T-B);
+ let g=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="กราฟราคาต่อตารางวา">`;
+ for(let v=0;v<=ymax+1e-9;v+=step){g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)" class="num">${v.toFixed(2)}</text>`;}
+ for(let v=0;v<=xmax+1e-9;v+=0.5){g+=`<text x="${X(v)}" y="${H-B+18}" text-anchor="middle" font-size="11" fill="var(--muted)">${v.toFixed(1)}</text>`;}
+ g+=`<text x="${(L+W-R)/2}" y="${H-4}" text-anchor="middle" font-size="11" fill="var(--muted)">ระยะจากทรัพย์หลัก (กม.)</text><text x="12" y="${T+4}" font-size="11" fill="var(--muted)">ล้าน/ตร.ว.</text>`;
+ if(M.mkt){g+=`<line x1="${L}" x2="${W-R}" y1="${Y(M.mkt/1e6)}" y2="${Y(M.mkt/1e6)}" stroke="var(--gold)" stroke-width="2" stroke-dasharray="6 4"/><text x="${W-R}" y="${Y(M.mkt/1e6)-6}" text-anchor="end" font-size="11" font-weight="600" fill="var(--gold)">ตลาด ${mb(M.mkt)}</text>`;}
+ g+=`<line x1="${X(S.settings.a.radiusKm)}" x2="${X(S.settings.a.radiusKm)}" y1="${T}" y2="${H-B}" stroke="var(--muted)" stroke-dasharray="2 4" opacity="${S.settings.a.radiusKm<=xmax?1:0}"/>`;
+ pts.forEach(p=>{g+=`<g data-open="${esc(p.id)}" style="cursor:pointer"><circle cx="${X(p.distSubj)}" cy="${Y(p.ppw/1e6)}" r="6" fill="${p.type==='shop_sold'?'var(--ink)':'var(--accent)'}" stroke="var(--surface)" stroke-width="1.5" ${p.example?'opacity=".45"':''}/><title>${esc(p.title)} · ${mb(p.ppw)}/ตร.ว. · ${km(p.distSubj)}</title></g>`;});
+ return g+'</svg>';
+}
+
+function viewLedger(M){
+ const q=S.q.trim().toLowerCase();
+ let rows=M.L.filter(x=>(S.ftype==='all'||x.type===S.ftype)&&(S.fexample==='all'||(S.fexample==='real'?!x.example:x.example))&&(!q||[x.title,x.location,x.notes,x.contact].join(' ').toLowerCase().includes(q)));
+ const key={dist:x=>x.distSubj??99,ppw:x=>x.ppw??1e12,price:x=>x.price??1e12,date:x=>-(Date.parse(x.date)||0)}[S.sort];
+ rows.sort((a,b)=>key(a)-key(b));
+ const nEx=S.listings.filter(x=>x.example).length;
+ return `<div class="toolbar">
+  <input type="search" id="q" placeholder="ค้นหา ชื่อ ทำเล ซอย หมายเหตุ" value="${esc(S.q)}">
+  <select id="ftype"><option value="all">ทุกประเภท</option>${Object.entries(TYPES).map(([k,t])=>`<option value="${k}" ${S.ftype===k?'selected':''}>${t.label}</option>`).join('')}</select>
+  <select id="sort">${[['dist','ใกล้ทรัพย์หลัก'],['ppw','ราคา/ตร.ว. ต่ำสุด'],['price','ราคารวมต่ำสุด'],['date','ล่าสุด']].map(([k,l])=>`<option value="${k}" ${S.sort===k?'selected':''}>เรียง: ${l}</option>`).join('')}</select>
+  <button class="btn primary" data-act="new" ${S.canWrite?'':'disabled'}>+ เพิ่มรายการ</button>
+  ${nEx?`<button class="btn danger" data-act="clearEx" ${S.canWrite?'':'disabled'}>ลบตัวอย่าง ${nEx} รายการ</button>`:''}
+ </div>
+ <div class="tablewrap"><table>
+  <thead><tr><th>ทรัพย์</th><th>ประเภท</th><th class="r">ที่ดิน ตร.ว.</th><th class="r">ใช้สอย ตร.ม.</th><th class="r">ราคา / ค่าเช่า</th><th class="r">ต่อ ตร.ว.</th><th class="r">ต่อ ตร.ม.</th><th class="r">ห่างทรัพย์หลัก</th><th class="r">ห่าง BTS</th><th>ข้อมูล</th></tr></thead>
+  <tbody>${rows.length?rows.map(x=>{const t=TYPES[x.type]||{label:x.type,chip:'condo'};const isRent=x.type.endsWith('rent');return `<tr data-open="${esc(x.id)}">
+   <td><div class="t-title">${esc(x.title)}</div><div class="small muted">${esc(x.location||'')}${x.floors?` · ${esc(x.floors)} ชั้น`:''}${x.units&&x.units>1?` · ${esc(x.units)} คูหา`:''}</div></td>
+   <td><span class="chip ${t.chip}">${t.label}</span>${x.example?' <span class="chip ex">ตัวอย่าง</span>':''}${x.status&&x.status!=='active'?`<div class="small muted">${STATUSES[x.status]||''}</div>`:''}</td>
+   <td class="r num">${x.landSqw??'—'}</td><td class="r num">${x.usableSqm??'—'}</td>
+   <td class="r num">${isRent?(x.rent?baht(x.rent)+' ฿/ด.':'—'):mb(x.price)}</td>
+   <td class="r num">${x.ppw?mb(x.ppw):'—'}</td>
+   <td class="r num">${isRent?(x.rpm?baht(x.rpm)+'/ด.':'—'):(x.ppm?baht(x.ppm):'—')}</td>
+   <td class="r num">${km(x.distSubj)}</td><td class="r num">${km(x.distBts)}</td>
+   <td class="small">${x.verified?'<span class="chip good">ยืนยันแล้ว</span>':'<span class="chip warn">ยังไม่ยืนยัน</span>'}${x.date?`<div class="muted">${esc(x.date)}</div>`:''}</td></tr>`}).join(''):`<tr><td colspan="10" class="empty">${S.loaded?'ยังไม่มีรายการตามตัวกรองนี้ กด "+ เพิ่มรายการ" เพื่อบันทึกทรัพย์แรก':'กำลังโหลดรายการ…'}</td></tr>`}</tbody>
+ </table></div>
+ <p class="small muted">คลิกแถวเพื่อแก้ไข ราคาประกาศไม่ใช่ราคาซื้อขายจริง ใส่ราคาที่ปิดการขายจริงเป็นประเภท "ตึกแถวขายแล้ว" เพื่อให้การประเมินแม่นขึ้น</p>`;
+}
+
+function viewDeals(M){
+ const a=S.settings.a;
+ const rows=M.L.filter(x=>x.type==='shop_sale'&&x.status!=='done'&&x.status!=='gone'&&x.price).map(x=>({x,d:dealCalc(x,M)})).sort((p,q)=>(p.d.disc??9)-(q.d.disc??9));
+ const condoEx=60*M.condoSale;
+ return `<div class="panel prose" style="margin-bottom:16px;max-width:none">
+  <h2>ตึกแถวรีโนเวท เทียบคอนโด</h2>
+  <p>งบคอนโด 60 ตร.ม. แถวราชเทวี ประมาณ <b class="num">${mb(condoEx,1)}</b> (${baht(M.condoSale)} ฿/ตร.ม.) แต่ละตึกด้านล่างแสดงต้นทุนรวมหลังซื้อและรีโนเวท และเทียบราคาต่อตารางเมตรใช้สอยกับคอนโด เกณฑ์ "ต่ำกว่าตลาด" คือราคาหลังต่อรองต่ำกว่าราคาตลาดต่อ ตร.ว. ตั้งแต่ ${Math.round(a.dealThreshold*100)}% ขึ้นไป</p>
+  <p class="small muted">สมมติฐาน: ค่าใช้จ่ายซื้อ ${Math.round(a.buyCost*100)}% · รีโนเวท ${baht(a.renoPerSqm)} ฿/ตร.ม. (ตึกพร้อมใช้คิด 35%) · ราคาขายหลังรีโน ${baht(a.resalePerSqm)} ฿/ตร.ม. หักค่าขาย ${Math.round(a.sellCost*100)}% · ค่าเช่าทั้งตึก ${baht(a.rentPerSqm)} ฿/ตร.ม./ด. เต็ม ${Math.round(a.occupancy*100)}% ปรับได้ในแท็บสมมติฐาน</p>
+ </div>
+ <div class="panel" style="padding:0">${rows.length?rows.map(({x,d})=>{
+   const flag=d.disc==null?'<span class="chip condo">ไม่มีขนาดที่ดิน</span>':d.disc<=-a.dealThreshold?`<span class="chip good">ต่ำกว่าตลาด ${pct(d.disc)}</span>`:d.disc<0?`<span class="chip warn">ต่ำกว่าเล็กน้อย ${pct(d.disc)}</span>`:`<span class="chip bad">สูงกว่าตลาด ${pct(d.disc)}</span>`;
+   return `<div class="dealcard" data-open="${esc(x.id)}" style="cursor:pointer">
+    <div><div class="t-title">${esc(x.title)} ${x.example?'<span class="chip ex">ตัวอย่าง</span>':''}</div><div class="small muted">${esc(x.location||'')} · ${mb(x.price)} · ${x.landSqw??'?'} ตร.ว. · ${x.usableSqm??'?'} ตร.ม.</div><div style="margin-top:4px">${flag}</div></div>
+    <div><div class="k">ต้นทุนรวม</div><div class="num">${mb(d.allIn)}</div></div>
+    <div><div class="k">ต้นทุน/ตร.ม. เทียบคอนโด</div><div class="num">${d.perSqm?baht(d.perSqm):'—'}</div><div class="small ${d.vsCondo!=null&&d.vsCondo<0?'':'muted'}" style="color:${d.vsCondo!=null&&d.vsCondo<0?'var(--good)':''}">${d.vsCondo!=null?pct(d.vsCondo)+' vs คอนโด':''}</div></div>
+    <div><div class="k">กำไรถ้าขายต่อ</div><div class="num" style="color:${d.profit>0?'var(--good)':d.profit<0?'var(--bad)':''}">${d.profit!=null?mb(d.profit):'—'}</div><div class="small muted">${d.margin!=null?pct(d.margin)+' ของทุน':''}</div></div>
+    <div><div class="k">ผลตอบแทนเช่า</div><div class="num">${d.yld!=null?(d.yld*100).toFixed(1)+'%':'—'}</div><div class="small muted">ต่อปี ก่อนภาษี</div></div>
+   </div>`}).join(''):`<div class="empty">ยังไม่มีตึกแถวที่กำลังขาย เพิ่มประกาศในแท็บรายการทั้งหมด</div>`}</div>
+ <p class="small muted prose" style="max-width:none">ตึกแถวขายแบ่งห้องเป็นห้องชุดแบบคอนโดไม่ได้ถ้าไม่จดทะเบียนอาคารชุด ทางออกที่ใช้กันคือขายทั้งหลังให้คนที่อยากได้บ้านพร้อมออฟฟิศ หรือแบ่งห้องให้เช่ารายเดือน ตัวเลขในหน้านี้เป็นการคัดกรองเบื้องต้น ควรตรวจโฉนด ผังเมือง และสภาพโครงสร้างก่อนตัดสินใจ</p>`;
+}
+
+function viewSettings(M){
+ const s=S.settings.subject,a=S.settings.a,dis=S.canWrite?'':'disabled';
+ const f=(k,l,v,hint,step='any')=>`<label>${l}<input type="number" step="${step}" data-a="${k}" value="${v??''}" ${dis}>${hint?`<span class="hint">${hint}</span>`:''}</label>`;
+ const w=num(s.landSqw);
+ return `<div class="grid2">
+ <section class="panel"><div class="panel-head"><h2>ทรัพย์หลัก</h2></div>
+  <div class="form">
+   <label class="full">ชื่อ<input data-s="name" value="${esc(s.name)}" ${dis}></label>
+   <label class="full">ที่อยู่<input data-s="address" value="${esc(s.address)}" ${dis}></label>
+   <label class="full">วางลิงก์ Google Maps หรือ "lat, lng" เพื่อปักหมุด<input id="subjMaps" placeholder="https://maps.google.com/...@13.74,100.52" ${dis}></label>
+   <label>ละติจูด<input type="number" step="any" data-s="lat" value="${s.lat??''}" ${dis}></label>
+   <label>ลองจิจูด<input type="number" step="any" data-s="lng" value="${s.lng??''}" ${dis}></label>
+   <label>ที่ดิน (ตร.ว.)<input type="number" step="any" data-s="landSqw" value="${s.landSqw??''}" ${dis}></label>
+   <label>พื้นที่ใช้สอย (ตร.ม.)<input type="number" step="any" data-s="usableSqm" value="${s.usableSqm??''}" ${dis}></label>
+   <label>จำนวนชั้น<input type="number" step="any" data-s="floors" value="${s.floors??''}" ${dis}></label>
+   <label>จำนวนคูหา<input type="number" step="1" data-s="units" value="${s.units??''}" ${dis}></label>
+   <label class="full">หมายเหตุ<textarea rows="3" data-s="notes" ${dis}>${esc(s.notes)}</textarea></label>
+  </div>
+  <div class="derived small" style="margin-top:12px;background:var(--sunk);border-radius:8px;padding:10px 12px">
+   ห่าง BTS ราชเทวี <b class="num">${km(hav(s,RATCHATHEWI))}</b> ·
+   ${M.mkt&&w?`มูลค่าตามที่ดิน <b class="num">${mb(M.mkt*w,1)}</b>`:'กรอกขนาดที่ดินเพื่อดูมูลค่า'}
+   ${M.askPpm&&num(s.usableSqm)?` · ตามพื้นที่ใช้สอย <b class="num">${mb(M.askPpm*(1-a.negotiation)*s.usableSqm,1)}</b>`:''}
+   ${M.rentMed&&num(s.usableSqm)?` · ค่าเช่าตลาด ~<b class="num">${baht(M.rentMed*s.usableSqm)}</b> ฿/ด.`:''}
+  </div>
+  <p class="small muted">หมุดวางตามตำแหน่งที่คุณระบุบนแผนที่ ปรับละเอียดได้โดยลากหมุดสีทองบนแผนที่ในแท็บภาพรวม หรือวางลิงก์ Google Maps ของตึกจริงด้านบน ตึกที่ติดปั๊มแก๊ส LPG อาจถูกผู้ซื้อบางกลุ่มกดราคาเรื่องความปลอดภัย ควรเก็บราคาตึกที่ติดปั๊มเทียบไว้ด้วย</p>
+ </section>
+ <section class="panel"><div class="panel-head"><h2>สมมติฐานการคำนวณ</h2></div>
+  <div class="settings">
+   ${f('radiusKm','รัศมีตึกเทียบ (กม.)',a.radiusKm,'วัดจากทรัพย์หลัก')}
+   ${f('negotiation','ส่วนลดจากการต่อรอง',a.negotiation,'0.08 = ราคาประกาศลด 8%')}
+   ${f('dealThreshold','เกณฑ์ "ต่ำกว่าตลาด"',a.dealThreshold,'0.15 = ต่ำกว่าตลาด 15%')}
+   ${f('buyCost','ค่าใช้จ่ายตอนซื้อ',a.buyCost,'ค่าโอน อากร ส่วนของผู้ซื้อ')}
+   ${f('renoPerSqm','ค่ารีโนเวท (฿/ตร.ม.)',a.renoPerSqm,'ทั้งหลัง รวมระบบไฟ ประปา')}
+   ${f('resalePerSqm','ราคาขายหลังรีโน (฿/ตร.ม.)',a.resalePerSqm,'ต่อพื้นที่ใช้สอย')}
+   ${f('sellCost','ค่าใช้จ่ายตอนขาย',a.sellCost,'ค่านายหน้า ภาษีธุรกิจเฉพาะ')}
+   ${f('rentPerSqm','ค่าเช่าทั้งตึกหลังรีโน (฿/ตร.ม./ด.)',a.rentPerSqm)}
+   ${f('occupancy','อัตราการเช่า',a.occupancy,'0.9 = 90%')}
+   ${f('condoSalePerSqm','ราคาคอนโดอ้างอิง (฿/ตร.ม.)',a.condoSalePerSqm,'ใช้เมื่อมีข้อมูลคอนโดไม่ถึง 3 รายการ')}
+   ${f('condoRentPerSqm','ค่าเช่าคอนโดอ้างอิง (฿/ตร.ม./ด.)',a.condoRentPerSqm)}
+   <label>ใช้ข้อมูลคอนโดที่บันทึกไว้<select data-a="useCondoData" ${dis}><option value="true" ${a.useCondoData?'selected':''}>ใช่ เมื่อมีตั้งแต่ 3 รายการ</option><option value="false" ${a.useCondoData?'':'selected'}>ไม่ ใช้ค่าอ้างอิงเสมอ</option></select></label>
+  </div>
+  <p class="small muted">ค่าตั้งต้นเป็นตัวเลขกลางๆ สำหรับเริ่มต้น ควรปรับตามใบเสนอราคาผู้รับเหมาและข้อมูลที่เก็บได้จริง</p>
+ </section></div>`;
+}
+
+// ---------- drawer (add/edit) ----------
+const FIELDS=['type','title','location','lat','lng','landSqw','usableSqm','floors','units','frontageM','price','rent','date','sourceUrl','contact','condition','status','notes','verified'];
+function openDrawer(id,preset){
+ if(DM){DM.remove();DM=null;}
+ const ex=id?S.listings.find(x=>x.id===id):null;
+ const x=ex||{type:'shop_sale',status:'active',condition:'orig',date:new Date().toISOString().slice(0,10),units:1,...(preset||{})};
+ const dis=S.canWrite?'':'disabled';
+ const sel=(k,obj)=>`<select id="f_${k}" ${dis}>${Object.entries(obj).map(([v,l])=>`<option value="${v}" ${x[k]===v?'selected':''}>${typeof l==='string'?l:l.label}</option>`).join('')}</select>`;
+ const inp=(k,l,type='text',cls='')=>`<label class="${cls}">${l}<input id="f_${k}" type="${type}" ${type==='number'?'step="any"':''} value="${esc(x[k]??'')}" ${dis}></label>`;
+ $('#drawerRoot').innerHTML=`<div class="drawer" data-act="close"><div class="sheet" role="dialog" aria-modal="true" aria-label="แก้ไขรายการ">
+  <div class="panel-head"><h2>${ex?'แก้ไขรายการ':'เพิ่มรายการ'}</h2><button class="btn ghost" data-act="close" aria-label="ปิด">ปิด</button></div>
+  ${ex&&ex.example?'<div class="notice">รายการนี้เป็นตัวอย่าง ไม่นำไปคำนวณ</div>':''}
+  <form class="form" id="lform">
+   <label>ประเภท${sel('type',TYPES)}</label>
+   <label>สถานะ${sel('status',STATUSES)}</label>
+   ${inp('title','ชื่อรายการ','text','full')}
+   ${inp('location','ทำเล / ซอย','text','full')}
+   <div class="full"><div id="pickMap" class="lmap small"></div><div class="small muted" style="margin-top:4px">คลิกบนแผนที่เพื่อปักหมุดตำแหน่งทรัพย์${x.lat!=null?` · <a href="https://www.google.com/maps?q=${x.lat},${x.lng}" target="_blank" rel="noopener">เปิดใน Google Maps</a>`:''}</div></div>
+   <label class="full">หรือวางลิงก์ Google Maps / "lat, lng"<input id="f_maps" placeholder="ระบบจะดึงพิกัดให้" ${dis}></label>
+   ${inp('lat','ละติจูด','number')}${inp('lng','ลองจิจูด','number')}
+   ${inp('landSqw','ที่ดิน (ตร.ว.)','number')}${inp('usableSqm','พื้นที่ใช้สอย (ตร.ม.)','number')}
+   ${inp('floors','จำนวนชั้น','number')}${inp('units','จำนวนคูหา','number')}
+   ${inp('frontageM','หน้ากว้าง (ม.)','number')}
+   <label>สภาพ${sel('condition',CONDITIONS)}</label>
+   ${inp('price','ราคาขาย (บาท)','number')}${inp('rent','ค่าเช่า (บาท/เดือน)','number')}
+   ${inp('date','วันที่ประกาศ/ข้อมูล','date')}${inp('contact','ผู้ติดต่อ','text')}
+   ${inp('sourceUrl','ลิงก์ประกาศ','url','full')}
+   <label class="full">หมายเหตุ<textarea id="f_notes" rows="3" ${dis}>${esc(x.notes||'')}</textarea></label>
+   <label class="full" style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" id="f_verified" style="width:auto" ${x.verified?'checked':''} ${dis}> ตรวจสอบกับผู้ขาย/โฉนดแล้ว</label>
+   <div class="derived" id="fderived"></div>
+  </form>
+  ${x.sourceUrl?`<p class="small"><a href="${esc(x.sourceUrl)}" target="_blank" rel="noopener">เปิดประกาศต้นทาง</a></p>`:''}
+  <div class="actions">
+   <button class="btn primary" data-act="save" ${dis}>บันทึก</button>
+   ${ex?`<button class="btn danger" data-act="del" ${dis}>ลบรายการ</button>`:''}
+   <span id="formMsg" class="small muted"></span>
+  </div></div></div>`;
+ $('#drawerRoot').dataset.id=id||'';
+ updDerived();
+ mountPicker(x);
+}
+function readForm(){const o={};FIELDS.forEach(k=>{const el=$('#f_'+k);if(!el)return;if(k==='verified')o[k]=el.checked;else if(el.type==='number')o[k]=num(el.value);else o[k]=el.value.trim();});return o;}
+function updDerived(){const el=$('#fderived');if(!el)return;const d=derive(readForm());el.innerHTML=`<span>ต่อ ตร.ว. <b class="num">${mb(d.ppw)}</b></span><span>ต่อ ตร.ม. <b class="num">${d.ppm?baht(d.ppm):'—'}</b></span><span>ค่าเช่า/ตร.ม. <b class="num">${d.rpm?baht(d.rpm):'—'}</b></span><span>ห่างทรัพย์หลัก <b class="num">${km(d.distSubj)}</b></span><span>ห่าง BTS ราชเทวี <b class="num">${km(d.distBts)}</b></span>`;}
+let delArm=false;
+async function saveListing(){
+ if(!S.db){$('#formMsg').textContent='ยังไม่ได้เชื่อมต่อฐานข้อมูล บันทึกไม่ได้';return;}
+ const o=readForm();if(!o.title){$('#formMsg').textContent='ใส่ชื่อรายการก่อนบันทึก';return;}
+ const id=$('#drawerRoot').dataset.id;const ex=id?S.listings.find(x=>x.id===id):null;
+ o.example=ex?!!ex.example:false;o.updatedAt=new Date().toISOString();
+ try{if(id)await S.db.doc('listings/'+id).set(o);else await S.db.collection('listings').add(o);closeDrawer();toast('บันทึกแล้ว');}
+ catch(e){handleWriteErr(e);}
+}
+function closeDrawer(){if(DM){DM.remove();DM=null;DMk=null;}$('#drawerRoot').innerHTML='';delArm=false;}
+
+// ---------- events ----------
+document.addEventListener('click',async e=>{
+ const t=e.target.closest('[data-tab],[data-act],[data-open]');if(!t)return;
+ if(t.dataset.tab){S.tab=t.dataset.tab;savePrefs();history.replaceState(null,'','#'+S.tab);render();return;}
+ const act=t.dataset.act;
+ if(act==='close'){if(e.target===t||t.tagName==='BUTTON')closeDrawer();return;}
+ if(act==='new'){openDrawer(null);return;}
+ if(act==='pinNew'){S.pickNew=true;render();$('#mainMapSlot')?.scrollIntoView({block:'center',behavior:'smooth'});return;}
+ if(act==='pinCancel'){S.pickNew=false;render();return;}
+ if(act==='save'){saveListing();return;}
+ if(act==='del'){if(!delArm){delArm=true;t.textContent='กดอีกครั้งเพื่อยืนยันการลบ';return;}const id=$('#drawerRoot').dataset.id;try{await S.db.doc('listings/'+id).delete();closeDrawer();toast('ลบแล้ว');}catch(err){handleWriteErr(err);}return;}
+ if(act==='clearEx'){if(t.dataset.armed!=='1'){t.dataset.armed='1';t.textContent='ยืนยัน ลบตัวอย่างทั้งหมด';return;}for(const x of S.listings.filter(x=>x.example)){try{await S.db.doc('listings/'+x.id).delete();}catch(err){handleWriteErr(err);break;}}toast('ลบตัวอย่างแล้ว');return;}
+ if(t.dataset.open&&!t.closest('.drawer')){openDrawer(t.dataset.open);}
+});
+document.addEventListener('input',e=>{
+ const t=e.target;
+ if(t.id==='q'){S.q=t.value;const pos=t.selectionStart;render();const n=$('#q');n.focus();n.setSelectionRange(pos,pos);return;}
+ if(t.id==='f_maps'){const p=parseMaps(t.value);if(p){$('#f_lat').value=p.lat;$('#f_lng').value=p.lng;syncPick();}}
+ if(t.id==='f_lat'||t.id==='f_lng')syncPick();
+ if(t.id&&t.id.startsWith('f_'))updDerived();
+});
+let setT;
+document.addEventListener('change',e=>{
+ const t=e.target;
+ if(t.id==='ftype'){S.ftype=t.value;render();return;}
+ if(t.id==='sort'){S.sort=t.value;savePrefs();render();return;}
+ if(t.id==='subjMaps'){const p=parseMaps(t.value);if(p){S.settings.subject.lat=p.lat;S.settings.subject.lng=p.lng;saveSettings();render();}else toast('อ่านพิกัดจากลิงก์นี้ไม่ได้ ลองเปิดหมุดใน Google Maps แล้วคัดลอกลิงก์ที่มี @lat,lng');return;}
+ if(t.dataset.s){const k=t.dataset.s;S.settings.subject[k]=t.type==='number'?num(t.value):t.value;saveSettings();render();return;}
+ if(t.dataset.a){const k=t.dataset.a;S.settings.a[k]=k==='useCondoData'?t.value==='true':num(t.value)??DEFAULT_SETTINGS.a[k];saveSettings();render();return;}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();if(S.pickNew){S.pickNew=false;render();}}});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(['overview','ledger','deals','settings'].includes(h)){S.tab=h;render();}});
+boot();
+</script>
