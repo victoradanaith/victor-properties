@@ -14,11 +14,14 @@
 - **หาดีล:** จัดอันดับตึกที่ราคาต่ำกว่าตลาด พร้อมต้นทุนรีโนเวทเทียบคอนโด
 - **ทรัพย์หลัก & สมมติฐาน:** ข้อมูลตึกแถวใกล้ปั๊ม LPG และตัวเลขที่ใช้คำนวณ
 
+ฉบับอ่านอย่างเดียวบน GitHub Pages: <https://victoradanaith.github.io/victor-properties/> ใช้ข้อมูลจาก `data/snapshot.json` ซึ่งไม่รวมรายการจาก Google Sheet ส่วนตัว และไม่มีชื่อหรือเบอร์ผู้ติดต่อ ถ้าจะอัปเดตฉบับนี้ ให้ export ฐานข้อมูลของแอปแล้วรัน `python3 tools/build_pages.py <export_dir>`
+
 ## ไฟล์ในรีโป
 
 | ไฟล์ | คืออะไร |
 |---|---|
 | `ratchathewi-shophouse.html` | โค้ดหน้าแอป (HTML + JS, ใช้ Leaflet จาก cdnjs) |
+| `index.html`, `data/snapshot.json` | ฉบับ GitHub Pages สร้างจาก `tools/build_pages.py` |
 | `assets/ratchathewi-map-z17.jpg` | ภาพแผนที่ย่านราชเทวี ต่อจาก OpenStreetMap ซูม 17 ตอนเผยแพร่จะใช้ชื่อไฟล์ `ratchathewi-map-z17.jpg` |
 
 ข้อมูลประกาศไม่ได้อยู่ในรีโปนี้ แต่อยู่ในฐานข้อมูลของ artifact (collection `listings` และเอกสาร `settings/main`) สำเนาประกาศที่หามาได้อยู่ใน Google Sheet แท็บ "ประกาศจาก Claude"
